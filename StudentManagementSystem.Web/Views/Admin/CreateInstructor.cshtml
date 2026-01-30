@@ -1,0 +1,79 @@
+@model StudentManagementSystem.BLL.DTOs.CreateInstructorDto
+
+@{
+    ViewData["Title"] = "Create Instructor";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Create New Instructor</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="CreateInstructor" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="FullName" class="form-control" placeholder="Full Name" />
+                        <label asp-for="FullName">Full Name</label>
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Email" class="form-control" placeholder="Email" />
+                        <label asp-for="Email">Email</label>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Phone" class="form-control" placeholder="Phone" />
+                        <label asp-for="Phone">Phone</label>
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Department" class="form-control" placeholder="Department" />
+                        <label asp-for="Department">Department</label>
+                        <span asp-validation-for="Department" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Specialization" class="form-control" placeholder="Specialization" />
+                        <label asp-for="Specialization">Specialization</label>
+                        <span asp-validation-for="Specialization" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Qualifications" class="form-control" placeholder="Qualifications" />
+                        <label asp-for="Qualifications">Qualifications</label>
+                        <span asp-validation-for="Qualifications" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Create Instructor</button>
+                <a asp-action="Instructors" class="btn btn-secondary">Cancel</a>
+            </div>
+
+            <div class="alert alert-info mt-3">
+                <strong>Note:</strong> A default user account will be created with username = instructor code (lowercase) and password = "123456"
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

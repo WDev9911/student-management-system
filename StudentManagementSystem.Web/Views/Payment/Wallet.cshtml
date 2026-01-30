@@ -1,0 +1,391 @@
+@model StudentManagementSystem.BLL.DTOs.WalletInfoDto
+@{
+    ViewData["Title"] = "My Wallet";
+}
+
+<style>
+    .wallet-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .balance-card {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .balance-amount {
+        font-size: 48px;
+        font-weight: 700;
+        margin: 10px 0;
+    }
+
+    .topup-section {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 30px;
+    }
+
+    .amount-btn {
+        padding: 20px;
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .amount-btn:hover {
+        border-color: #667eea;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+    }
+
+    .amount-btn.active {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .amount-btn .amount {
+        font-size: 24px;
+        font-weight: 700;
+        display: block;
+    }
+
+    .amount-btn .label {
+        font-size: 12px;
+        opacity: 0.8;
+    }
+
+    .custom-amount {
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 15px;
+        font-size: 18px;
+        text-align: center;
+        width: 100%;
+    }
+
+    .custom-amount:focus {
+        border-color: #667eea;
+        outline: none;
+    }
+
+    .transaction-item {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s;
+    }
+
+    .transaction-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+
+    .transaction-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-right: 15px;
+    }
+
+    .transaction-icon.deposit {
+        background: linear-gradient(135deg, #2ECC71, #27AE60);
+        color: white;
+    }
+
+    .transaction-icon.deduct {
+        background: linear-gradient(135deg, #E74C3C, #C0392B);
+        color: white;
+    }
+
+    .status-badge {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-badge.success {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-badge.pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-badge.failed {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .btn-pay {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.3s;
+    }
+
+    .btn-pay:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-pay:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+</style>
+
+<div class="container">
+    <!-- Wallet Header -->
+    <div class="wallet-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2><i class="fas fa-wallet me-3"></i>My Wallet</h2>
+                <p class="mb-0">@Model.StudentCode - @Model.StudentName</p>
+                <small>Last updated: @Model.LastUpdated.ToString("dd/MM/yyyy HH:mm")</small>
+            </div>
+            <div class="col-md-4">
+                <div class="balance-card">
+                    <div class="label">Current Balance</div>
+                    <div class="balance-amount">@Model.Balance.ToString("N0")</div>
+                    <div class="label">VND</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Top Up Section -->
+        <div class="col-md-6">
+            <div class="topup-section">
+                <h4 class="mb-4"><i class="fas fa-credit-card me-2"></i>Top Up Wallet</h4>
+                
+                <!-- Quick Amount Buttons -->
+                <div class="row">
+                    <div class="col-6">
+                        <div class="amount-btn" onclick="selectAmount(50000)">
+                            <span class="amount">50,000</span>
+                            <span class="label">VND</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="amount-btn" onclick="selectAmount(100000)">
+                            <span class="amount">100,000</span>
+                            <span class="label">VND</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="amount-btn" onclick="selectAmount(200000)">
+                            <span class="amount">200,000</span>
+                            <span class="label">VND</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="amount-btn" onclick="selectAmount(500000)">
+                            <span class="amount">500,000</span>
+                            <span class="label">VND</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="amount-btn" onclick="selectAmount(1000000)">
+                            <span class="amount">1,000,000</span>
+                            <span class="label">VND</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="amount-btn" onclick="selectAmount(2000000)">
+                            <span class="amount">2,000,000</span>
+                            <span class="label">VND</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Amount -->
+                <div class="mt-3">
+                    <label class="form-label">Or enter custom amount:</label>
+                    <input type="number" 
+                           class="custom-amount" 
+                           id="customAmount" 
+                           placeholder="Enter amount..."
+                           min="10000"
+                           step="10000"
+                           onchange="selectCustomAmount()">
+                </div>
+
+                <!-- Selected Amount Display -->
+                <div class="mt-4 p-3 bg-light rounded text-center">
+                    <small class="text-muted d-block">Amount to pay:</small>
+                    <h3 class="text-primary mb-0" id="selectedAmountDisplay">0 VND</h3>
+                </div>
+
+                <!-- Payment Button -->
+                <button class="btn-pay mt-4" id="btnPay" onclick="processPayment()" disabled>
+                    <i class="fas fa-money-check-alt me-2"></i>Pay with VNPay
+                </button>
+
+                <div class="text-center mt-3">
+                    <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/9/06ncktiwd6dc1694418196384.png" 
+                         alt="VNPay" 
+                         style="height: 30px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="col-md-6">
+            <div class="topup-section">
+                <h4 class="mb-4"><i class="fas fa-history me-2"></i>Transaction History</h4>
+                
+                @if (!Model.RecentTransactions.Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-receipt fa-3x mb-3"></i>
+                        <p>No transactions yet</p>
+                    </div>
+                }
+                else
+                {
+                    <div style="max-height: 600px; overflow-y: auto;">
+                        @foreach (var txn in Model.RecentTransactions)
+                        {
+                            <div class="transaction-item">
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <div class="transaction-icon @(txn.Type == "Deposit" ? "deposit" : "deduct")">
+                                        <i class="fas fa-@(txn.Type == "Deposit" ? "plus" : "minus")"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">@txn.Description</div>
+                                        <small class="text-muted">
+                                            @txn.CreatedDate.ToString("dd/MM/yyyy HH:mm")
+                                            @if (!string.IsNullOrEmpty(txn.PaymentMethod))
+                                            {
+                                                <span> • @txn.PaymentMethod</span>
+                                            }
+                                        </small>
+                                        <div>
+                                            <small class="text-muted">@txn.TransactionCode</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold @(txn.Type == "Deposit" ? "text-success" : "text-danger")">
+                                        @(txn.Type == "Deposit" ? "+" : "-")@txn.Amount.ToString("N0") VND
+                                    </div>
+                                    <span class="status-badge @txn.Status.ToLower()">@txn.Status</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedAmount = 0;
+
+        function selectAmount(amount) {
+            selectedAmount = amount;
+            
+            // Update UI
+            document.querySelectorAll('.amount-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            document.getElementById('customAmount').value = '';
+            document.getElementById('selectedAmountDisplay').textContent = amount.toLocaleString() + ' VND';
+            document.getElementById('btnPay').disabled = false;
+        }
+
+        function selectCustomAmount() {
+            const customInput = document.getElementById('customAmount');
+            const amount = parseInt(customInput.value);
+            
+            if (amount && amount >= 10000) {
+                selectedAmount = amount;
+                
+                document.querySelectorAll('.amount-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                document.getElementById('selectedAmountDisplay').textContent = amount.toLocaleString() + ' VND';
+                document.getElementById('btnPay').disabled = false;
+            } else {
+                document.getElementById('btnPay').disabled = true;
+            }
+        }
+
+        async function processPayment() {
+            if (selectedAmount < 10000) {
+                alert('Minimum amount is 10,000 VND');
+                return;
+            }
+
+            const btnPay = document.getElementById('btnPay');
+            btnPay.disabled = true;
+            btnPay.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+
+            try {
+                const response = await fetch('/Payment/CreatePayment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        amount: selectedAmount,
+                        locale: 'vn'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    window.location.href = result.paymentUrl;
+                } else {
+                    alert('Error: ' + result.message);
+                    btnPay.disabled = false;
+                    btnPay.innerHTML = '<i class="fas fa-money-check-alt me-2"></i>Pay with VNPay';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+                btnPay.disabled = false;
+                btnPay.innerHTML = '<i class="fas fa-money-check-alt me-2"></i>Pay with VNPay';
+            }
+        }
+    </script>
+}

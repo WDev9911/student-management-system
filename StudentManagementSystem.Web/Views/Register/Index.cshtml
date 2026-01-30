@@ -1,0 +1,120 @@
+@model StudentManagementSystem.BLL.DTOs.RegisterRequestDto
+
+@{
+    ViewData["Title"] = "Student Registration";
+    Layout = "_AuthLayout";
+}
+
+<div class="auth-page">
+    <div class="register-card shadow-lg">
+        <div class="register-header">
+            <h2>Student Registration</h2>
+            <p>Create your account to access the student portal</p>
+        </div>
+
+        <form asp-action="Index" method="post" class="register-form">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="FullName" class="form-control" placeholder="Full Name" />
+                        <label asp-for="FullName">Full Name</label>
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Email" class="form-control" placeholder="Email" />
+                        <label asp-for="Email">Email</label>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Phone" class="form-control" placeholder="Phone" />
+                        <label asp-for="Phone">Phone</label>
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="DateOfBirth" type="date" class="form-control" />
+                        <label asp-for="DateOfBirth">Date of Birth</label>
+                        <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select asp-for="Gender" class="form-select">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <label asp-for="Gender">Gender</label>
+                        <span asp-validation-for="Gender" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select asp-for="MajorId" asp-items="ViewBag.Majors" class="form-select">
+                            <option value="">Select Major</option>
+                        </select>
+                        <label asp-for="MajorId">Major</label>
+                        <span asp-validation-for="MajorId" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="form-floating">
+                        <input asp-for="Address" class="form-control" placeholder="Address" />
+                        <label asp-for="Address">Address</label>
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Username" class="form-control" placeholder="Username" />
+                        <label asp-for="Username">Username</label>
+                        <span asp-validation-for="Username" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6"></div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Password" class="form-control" placeholder="Password" />
+                        <label asp-for="Password">Password</label>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm Password" />
+                        <label asp-for="ConfirmPassword">Confirm Password</label>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mt-4">Register</button>
+
+            <p class="text-center mt-3">
+                Already have an account? <a asp-controller="Auth" asp-action="Login">Login here</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

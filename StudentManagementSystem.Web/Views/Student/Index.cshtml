@@ -1,0 +1,169 @@
+@model StudentManagementSystem.BLL.DTOs.StudentDashboardDto
+
+@{
+    ViewData["Title"] = $"Dashboard - {Model.FullName} ({Model.StudentCode})";
+    var paymentMsg = TempData["PaymentResult"] as string;
+    var paymentAmount = TempData["PaymentAmount"] as string;
+}
+
+<div class="container-fluid">
+    @if (!string.IsNullOrEmpty(paymentMsg))
+    {
+        <div class="alert alert-@(paymentMsg.Contains("thành công") ? "success" : "danger")" role="alert">
+            @paymentMsg
+            @if (!string.IsNullOrEmpty(paymentAmount))
+            {
+                <div><strong>Amount:</strong> @paymentAmount VND</div>
+            }
+        </div>
+    }
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card stat-wallet">
+                <div class="stat-icon-text">
+                    <svg width="32" height="32" fill="#f59e0b" viewBox="0 0 16 16">
+                        <path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718H4zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73l.348.086z"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Wallet Balance</div>
+                    <div class="stat-value">@Model.WalletBalance.ToString("N0")d</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card stat-courses">
+                <div class="stat-icon-text">
+                    <svg width="32" height="32" fill="#3b82f6" viewBox="0 0 16 16">
+                        <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828Zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687ZM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783Z"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Enrolled Courses</div>
+                    <div class="stat-value">@Model.EnrolledCoursesCount</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card stat-gpa">
+                <div class="stat-icon-text">
+                    <svg width="32" height="32" fill="#10b981" viewBox="0 0 16 16">
+                        <path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Current GPA</div>
+                    <div class="stat-value">@Model.CurrentGPA.ToString("F2")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card stat-credits">
+                <div class="stat-icon-text">
+                    <svg width="32" height="32" fill="#8b5cf6" viewBox="0 0 16 16">
+                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Credits Completed</div>
+                    <div class="stat-value">@Model.CreditsCompleted</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <svg width="20" height="20" fill="#ef4444" viewBox="0 0 16 16">
+                        <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z"/>
+                    </svg>
+                    <strong>RECENT NOTIFICATIONS (@Model.RecentNotifications.Count)</strong>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentNotifications.Any())
+                    {
+                        <ul class="notification-list">
+                            @foreach (var notif in Model.RecentNotifications)
+                            {
+                                <li>@notif.Message</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No recent notifications</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <svg width="20" height="20" fill="#3b82f6" viewBox="0 0 16 16">
+                        <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-5 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
+                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                    </svg>
+                    <strong>THIS WEEK'S SCHEDULE</strong>
+                </div>
+                <div class="card-body">
+                    @if (Model.ThisWeekSchedule.Any())
+                    {
+                        @foreach (var day in Model.ThisWeekSchedule.OrderBy(d => d.DayOfWeek))
+                        {
+                            <div class="schedule-item">
+                                <strong>@day.DayOfWeek:</strong>
+                                <ul>
+                                    @foreach (var cls in day.Classes.OrderBy(c => c.StartTime))
+                                    {
+                                        <li>@cls.StartTime.ToString(@"hh\:mm")-@cls.EndTime.ToString(@"hh\:mm"): @cls.CourseName @(cls.RoomNumber != null ? $"(Room {cls.RoomNumber})" : "")</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No classes scheduled this week</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <svg width="20" height="20" fill="#10b981" viewBox="0 0 16 16">
+                        <path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/>
+                    </svg>
+                    <strong>ACADEMIC PROGRESS</strong>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Current Semester: @Model.CurrentSemester</span>
+                            @{
+                                var progressPercent = Model.TotalCreditsRequired > 0 ? (int)((double)Model.CreditsCompleted / Model.TotalCreditsRequired * 100) : 0;
+                            }
+                            <span>Credits Earned: @Model.CreditsCompleted/@Model.TotalCreditsRequired (@progressPercent%)</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-success" style="width: @progressPercent%">@progressPercent%</div>
+                        </div>
+                    </div>
+                    <div>
+                        <strong>CGPA: @Model.CurrentGPA.ToString("F2")/4.00</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

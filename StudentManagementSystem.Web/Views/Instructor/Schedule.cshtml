@@ -1,0 +1,674 @@
+@model List<StudentManagementSystem.BLL.DTOs.ClassDto>
+@{
+    ViewData["Title"] = "Teaching Schedule";
+    
+    // Map both Vietnamese and English days
+    var dayMapping = new Dictionary<string, string>
+    {
+        { "T2", "Monday" },
+        { "T3", "Tuesday" },
+        { "T4", "Wednesday" },
+        { "T5", "Thursday" },
+        { "T6", "Friday" },
+        { "T7", "Saturday" },
+        { "CN", "Sunday" },
+        // Add reverse mapping for English days
+        { "Mon", "Monday" },
+        { "Tue", "Tuesday" },
+        { "Wed", "Wednesday" },
+        { "Thu", "Thursday" },
+        { "Fri", "Friday" },
+        { "Sat", "Saturday" },
+        { "Sun", "Sunday" }
+    };
+    
+    var dayColors = new Dictionary<string, string>
+    {
+        { "Monday", "#FF6B35" },
+        { "Tuesday", "#5B5FFF" },
+        { "Wednesday", "#7B68EE" },
+        { "Thursday", "#6C5CE7" },
+        { "Friday", "#A29BFE" },
+        { "Saturday", "#6C5CE7" },
+        { "Sunday", "#A29BFE" }
+    };
+    
+    // Group classes by semester
+    var classesBySemester = Model?.GroupBy(c => c.SemesterName).ToList() ?? new List<IGrouping<string, StudentManagementSystem.BLL.DTOs.ClassDto>>();
+    
+    // Get current week dates
+    var today = DateTime.Now;
+    var currentWeekStart = today.AddDays(-(int)today.DayOfWeek + 1); // Monday
+    var weekDates = Enumerable.Range(0, 7).Select(i => currentWeekStart.AddDays(i)).ToList();
+    
+    // Calculate stats
+    var totalClasses = Model?.Count ?? 0;
+    var todayClasses = Model?.Count(c => 
+    {
+        var parts = c.Schedule.Split(" - ");
+        if (parts.Length != 2) return false;
+        var days = parts[0].Split(',').Select(d => d.Trim()).ToList();
+        var todayDay = DateTime.Now.DayOfWeek.ToString();
+        // Check both formats
+        return days.Any(d => dayMapping.ContainsKey(d) && dayMapping[d] == todayDay);
+    }) ?? 0;
+}
+
+<style>
+    /* Keep all existing styles */
+    .schedule-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    
+    .weekly-schedule-container {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 30px;
+    }
+    
+    .week-navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+    
+    .week-navigation h5 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .nav-btn {
+        background: #f8f9fa;
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .nav-btn:hover {
+        background: #e9ecef;
+        transform: scale(1.1);
+    }
+    
+    .days-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 15px;
+    }
+    
+    .day-column {
+        background: #f8f9fa;
+        border-radius: 15px;
+        overflow: hidden;
+        min-height: 400px;
+        transition: all 0.3s;
+    }
+    
+    .day-header {
+        padding: 15px;
+        text-align: center;
+        color: white;
+        font-weight: 600;
+    }
+    
+    .day-header.today {
+        position: relative;
+    }
+    
+    .day-header.today::after {
+        content: 'TODAY';
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 8px;
+        background: rgba(255, 255, 255, 0.3);
+        padding: 2px 6px;
+        border-radius: 10px;
+    }
+    
+    .day-date {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    .day-name {
+        font-size: 12px;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .day-body {
+        padding: 15px;
+        min-height: 300px;
+    }
+    
+    .no-classes {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+    }
+    
+    .no-classes i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        opacity: 0.3;
+    }
+    
+    .class-card {
+        background: white;
+        border-left: 4px solid;
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .class-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+    
+    .class-code {
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+    
+    .class-name {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 8px;
+        line-height: 1.3;
+    }
+    
+    .class-time {
+        display: flex;
+        align-items: center;
+        font-size: 11px;
+        color: #999;
+        margin-bottom: 5px;
+    }
+    
+    .class-time i {
+        margin-right: 5px;
+    }
+    
+    .class-room {
+        display: flex;
+        align-items: center;
+        font-size: 11px;
+        color: #999;
+    }
+    
+    .class-room i {
+        margin-right: 5px;
+    }
+    
+    .upcoming-classes {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .upcoming-class-item {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        border-radius: 12px;
+        background: #f8f9fa;
+        margin-bottom: 15px;
+        transition: all 0.3s;
+    }
+    
+    .upcoming-class-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+    
+    .upcoming-class-date {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 10px;
+        text-align: center;
+        margin-right: 15px;
+        min-width: 80px;
+    }
+    
+    .upcoming-class-info {
+        flex: 1;
+    }
+    
+    .semester-selector {
+        margin-bottom: 30px;
+    }
+    
+    .semester-btn {
+        padding: 10px 20px;
+        border: 2px solid #e9ecef;
+        background: white;
+        border-radius: 10px;
+        margin-right: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .semester-btn:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+    
+    .semester-btn.active {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-color: transparent;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .empty-state i {
+        font-size: 80px;
+        color: #e9ecef;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h4 {
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
+
+    .empty-state p {
+        color: #adb5bd;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    @@media (max-width: 1400px) {
+        .days-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+    }
+
+    @@media (max-width: 992px) {
+        .days-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .days-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="container-fluid px-4">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Info"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i>@TempData["Info"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <h4>No Teaching Schedule Yet</h4>
+            <p>You haven't been assigned to any classes yet. Please contact the administrator to get class assignments.</p>
+            <a href="@Url.Action("Index", "Instructor")" class="btn btn-primary mt-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Summary Stats -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <h3 class="mb-0">@totalClasses</h3>
+                    <small class="text-muted">Total Classes</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #2ECC71, #27AE60); color: white;">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 class="mb-0">@todayClasses</h3>
+                    <small class="text-muted">Today's Classes</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #A29BFE, #6C5CE7); color: white;">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <h3 class="mb-0">0</h3>
+                    <small class="text-muted">Online Classes</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Semester Selector -->
+        @if (classesBySemester.Count > 1)
+        {
+            <div class="semester-selector">
+                @foreach (var (semester, index) in classesBySemester.Select((s, i) => (s, i)))
+                {
+                    <button class="semester-btn @(index == 0 ? "active" : "")" 
+                            onclick="switchSemester(@index)">
+                        @semester.Key
+                        <span class="badge bg-light text-dark ms-2">@semester.Count()</span>
+                    </button>
+                }
+            </div>
+        }
+
+        <!-- Weekly Schedule -->
+        @foreach (var (semester, semesterIndex) in classesBySemester.Select((s, i) => (s, i)))
+        {
+            <div class="weekly-schedule-container semester-content" id="semester-@semesterIndex" style="display: @(semesterIndex == 0 ? "block" : "none")">
+                <div class="week-navigation">
+                    <button class="nav-btn" onclick="previousWeek()">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="text-center">
+                        <h5><i class="fas fa-calendar-week me-2"></i>Weekly Schedule</h5>
+                        <small class="text-muted">@weekDates[0].ToString("MMM dd") - @weekDates[6].ToString("MMM dd, yyyy")</small>
+                    </div>
+                    <button class="nav-btn" onclick="nextWeek()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div class="days-grid">
+                    @foreach (var (day, dayIndex) in new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" }.Select((d, i) => (d, i)))
+                    {
+                        var dayDate = weekDates[dayIndex];
+                        var isToday = dayDate.Date == DateTime.Now.Date;
+                        var classesForDay = semester.Where(c => 
+                        {
+                            var parts = c.Schedule.Split(" - ");
+                            if (parts.Length != 2) return false;
+                            var days = parts[0].Split(',').Select(d => d.Trim()).ToList();
+                            
+                            // Check if any of the schedule days match this day (supports both formats)
+                            return days.Any(scheduleDay => 
+                                dayMapping.ContainsKey(scheduleDay) && dayMapping[scheduleDay] == day);
+                        }).ToList();
+                        
+                        <div class="day-column">
+                            <div class="day-header @(isToday ? "today" : "")" style="background: @dayColors[day];">
+                                <div class="day-name">@day.Substring(0, 3).ToUpper()</div>
+                                <div class="day-date">@dayDate.Day.ToString("D2")</div>
+                                <div class="day-name">@dayDate.ToString("MMM")</div>
+                            </div>
+                            <div class="day-body">
+                                @if (!classesForDay.Any())
+                                {
+                                    <div class="no-classes">
+                                        <i class="fas fa-calendar-check"></i>
+                                        <p class="mb-0">No classes</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    @foreach (var cls in classesForDay.OrderBy(c => c.StartTime))
+                                    {
+                                        <div class="class-card" 
+                                             style="border-left-color: @dayColors[day];"
+                                             data-bs-toggle="modal" 
+                                             data-bs-target="#classModal"
+                                             onclick="showClassDetails('@cls.ClassName', '@cls.CourseCode', '@cls.CourseName', '@cls.Room', '@cls.Schedule', @cls.CurrentEnrollment, @cls.MaxStudents, '@cls.StartTime', '@cls.EndTime')">
+                                            <div class="class-code" style="color: @dayColors[day];">@cls.ClassName</div>
+                                            <div class="class-name">@cls.CourseName</div>
+                                            <div class="class-time">
+                                                <i class="fas fa-clock"></i>
+                                                @cls.StartTime.ToString(@"hh\:mm") - @cls.EndTime.ToString(@"hh\:mm")
+                                            </div>
+                                            <div class="class-room">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                @cls.Room
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Upcoming Classes -->
+            <div class="upcoming-classes semester-content" id="upcoming-@semesterIndex" style="display: @(semesterIndex == 0 ? "block" : "none")">
+                <h5 class="mb-4">
+                    <i class="fas fa-arrow-right me-2"></i>Upcoming Classes
+                </h5>
+                @{
+                    var upcomingClasses = semester
+                        .Where(c => 
+                        {
+                            var parts = c.Schedule.Split(" - ");
+                            if (parts.Length != 2) return false;
+                            var days = parts[0].Split(',').Select(d => d.Trim()).ToList();
+                            
+                            // Check for classes in next 7 days
+                            for (int i = 0; i < 7; i++)
+                            {
+                                var checkDate = DateTime.Now.AddDays(i);
+                                var checkDayName = checkDate.DayOfWeek.ToString();
+                                if (days.Any(d => dayMapping.ContainsKey(d) && dayMapping[d] == checkDayName))
+                                {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        })
+                        .Take(5)
+                        .ToList();
+                }
+                
+                @if (upcomingClasses.Any())
+                {
+                    @foreach (var cls in upcomingClasses)
+                    {
+                        var parts = cls.Schedule.Split(" - ");
+                        var days = parts[0].Split(',').Select(d => d.Trim()).ToList();
+                        var nextClassDate = Enumerable.Range(0, 7)
+                            .Select(i => DateTime.Now.AddDays(i))
+                            .FirstOrDefault(d => 
+                            {
+                                var dayName = d.DayOfWeek.ToString();
+                                return days.Any(scheduleDay => 
+                                    dayMapping.ContainsKey(scheduleDay) && dayMapping[scheduleDay] == dayName);
+                            });
+                        
+                        <div class="upcoming-class-item">
+                            <div class="upcoming-class-date">
+                                <div style="font-size: 12px; opacity: 0.9;">@nextClassDate.ToString("ddd")</div>
+                                <div style="font-size: 20px; font-weight: 700;">@nextClassDate.Day</div>
+                                <div style="font-size: 12px; opacity: 0.9;">@nextClassDate.ToString("MMM")</div>
+                            </div>
+                            <div class="upcoming-class-info">
+                                <h6 class="mb-1">@cls.CourseCode - @cls.CourseName</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>@cls.StartTime.ToString(@"hh\:mm") - @cls.EndTime.ToString(@"hh\:mm")
+                                    <span class="mx-2">•</span>
+                                    <i class="fas fa-map-marker-alt me-1"></i>@cls.Room
+                                </small>
+                            </div>
+                            <span class="badge bg-light text-dark">@(nextClassDate == DateTime.Now.Date ? "Today" : $"{(nextClassDate - DateTime.Now).Days}d")</span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-calendar-check fa-3x mb-3"></i>
+                        <p>No upcoming classes in the next 7 days</p>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+<!-- Class Details Modal -->
+<div class="modal fade" id="classModal" tabindex="-1" aria-labelledby="classModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 20px 20px 0 0;">
+                <h5 class="modal-title" id="classModalLabel">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Class Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="text-muted small mb-1">Class Code</label>
+                    <h4 id="modalClassName" class="text-primary mb-0"></h4>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small mb-1">Course</label>
+                    <p id="modalCourseName" class="mb-0"></p>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="text-muted small mb-1">Time</label>
+                        <p id="modalTime" class="mb-0">
+                            <i class="fas fa-clock text-primary me-2"></i><span id="modalSchedule"></span>
+                        </p>
+                    </div>
+                    <div class="col-6">
+                        <label class="text-muted small mb-1">Room</label>
+                        <p id="modalRoom" class="mb-0">
+                            <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                        </p>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small mb-1">Students</label>
+                    <p id="modalStudents" class="mb-0">
+                        <i class="fas fa-users text-success me-2"></i>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer" style="border: none; padding: 20px;">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea, #764ba2); border: none;">
+                    <i class="fas fa-users me-1"></i>View Students
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showClassDetails(className, courseCode, courseName, room, schedule, currentEnrollment, maxStudents, startTime, endTime) {
+            document.getElementById('modalClassName').textContent = className;
+            document.getElementById('modalCourseName').textContent = `${courseCode} - ${courseName}`;
+            document.getElementById('modalRoom').innerHTML = `<i class="fas fa-map-marker-alt text-danger me-2"></i>${room}`;
+            
+            // Format time properly
+            const start = startTime.split(':').slice(0, 2).join(':');
+            const end = endTime.split(':').slice(0, 2).join(':');
+            document.getElementById('modalSchedule').textContent = `${start} - ${end}`;
+            
+            document.getElementById('modalStudents').innerHTML = `<i class="fas fa-users text-success me-2"></i>${currentEnrollment} / ${maxStudents} students`;
+        }
+
+        function switchSemester(index) {
+            // Hide all semester content
+            document.querySelectorAll('.semester-content').forEach(el => el.style.display = 'none');
+            
+            // Show selected semester   
+            document.getElementById(`semester-${index}`).style.display = 'block';
+            document.getElementById(`upcoming-${index}`).style.display = 'block';
+            
+            // Update active button
+            document.querySelectorAll('.semester-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.semester-btn')[index].classList.add('active');
+        }
+            
+        function previousWeek() {
+            alert('Previous week navigation - To be implemented');
+        }
+
+        function nextWeek() {
+            alert('Next week navigation - To be implemented');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Schedule page loaded with @Model.Count classes');
+            @foreach (var cls in Model)
+            {
+                <text>
+                console.log('Class: @cls.ClassName, Schedule: @cls.Schedule');
+                </text>
+            }
+        });
+    </script>
+}
