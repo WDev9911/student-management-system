@@ -47,7 +47,12 @@
                         {
                             <tr>
                                 <td>
-                                    <strong class="text-primary">@cls.ClassName</strong>
+                                    <a asp-controller="Instructor"
+                                       asp-action="ClassStudents"
+                                       asp-route-classId="@cls.ClassId"
+                                       class="fw-bold text-primary">
+                                        @cls.ClassName
+                                    </a>
                                 </td>
                                 <td>
                                     <div>@cls.CourseCode - @cls.CourseName</div>
@@ -106,15 +111,28 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <button type="button" class="btn btn-outline-primary" title="View Students">
+                                        <a asp-controller="Instructor"
+                                           asp-action="ClassStudents"
+                                           asp-route-classId="@cls.ClassId"
+                                           class="btn btn-outline-primary"
+                                           title="View Students">
                                             <i class="fas fa-users"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-info" title="Take Attendance">
+                                        </a>
+                                        <a asp-controller="Instructor"
+                                           asp-action="Attendance"
+                                           asp-route-classId="@cls.ClassId"
+                                           asp-route-date="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                           class="btn btn-outline-info"
+                                           title="Take Attendance">
                                             <i class="fas fa-clipboard-check"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-success" title="Grades">
+                                        </a>
+                                        <a asp-controller="Instructor"
+                                           asp-action="GradeEntry"
+                                           asp-route-classId="@cls.ClassId"
+                                           class="btn btn-outline-success"
+                                           title="Grades">
                                             <i class="fas fa-graduation-cap"></i>
-                                        </button>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>

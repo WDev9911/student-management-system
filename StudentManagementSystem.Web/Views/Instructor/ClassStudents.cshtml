@@ -1,0 +1,91 @@
+@model StudentManagementSystem.BLL.DTOs.ClassStudentsDto
+@{
+    ViewData["Title"] = "Class Students";
+}
+
+<div class="card mb-4">
+    <div class="card-header">
+        <strong>@Model.ClassName</strong> - @Model.CourseCode (@Model.CourseName)
+    </div>
+    <div class="card-body">
+        <div class="mb-2"><strong>Semester:</strong> @Model.SemesterName</div>
+        <div class="mb-2"><strong>Schedule:</strong> @Model.Schedule</div>
+        <div class="mb-2"><strong>Room:</strong> @Model.Room</div>
+        <div><strong>Students:</strong> @Model.CurrentEnrollment / @Model.MaxStudents</div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-success text-center">
+            <div class="card-body">
+                <h4>@Model.ActiveStudents</h4>
+                <div>Active Students</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-danger text-center">
+            <div class="card-body">
+                <h4>@Model.DroppedStudents</h4>
+                <div>Dropped</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-primary text-center">
+            <div class="card-body">
+                <h4>@Model.PaidStudents</h4>
+                <div>Paid Students</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        Student List
+    </div>
+    <div class="card-body">
+        @if (!Model.Students.Any())
+        {
+            <div class="alert alert-info">No students enrolled in this class.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Student Code</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th>Paid</th>
+                            <th>Enrollment Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model.Students)
+                        {
+                            <tr>
+                                <td>@s.StudentCode</td>
+                                <td>@s.FullName</td>
+                                <td>@s.Email</td>
+                                <td>@s.Phone</td>
+                                <td>
+                                    <span class="badge @(s.Status == "Active" ? "bg-success" : "bg-secondary")">
+                                        @s.Status
+                                    </span>
+                                </td>
+                                <td>@s.PaidAmount.ToString("N0") VND</td>
+                                <td>@s.EnrollmentDate.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

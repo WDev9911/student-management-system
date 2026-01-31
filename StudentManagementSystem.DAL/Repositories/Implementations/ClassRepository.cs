@@ -105,5 +105,29 @@ namespace StudentManagementSystem.DAL.Repositories.Implementations
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<CourseClass?> GetClassByIdAsync(int classId)
+        {
+            return await _context.CourseClasses
+                .Include(c => c.Course)
+                .Include(c => c.Instructor)
+                .Include(c => c.Semester)
+                .FirstOrDefaultAsync(c => c.ClassId == classId);
+        }
+
+        public async Task<List<CourseClass>> GetClassesByCourseAsync(int courseId)
+        {
+            return await _context.CourseClasses
+                .Include(c => c.Course)
+                .Include(c => c.Instructor)
+                .Include(c => c.Semester)
+                .Where(c => c.CourseId == courseId && c.Status == "Open")
+                .ToListAsync();
+        }
+
+        public async Task<bool> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync() > 0;
+        }
     }
 }

@@ -1,0 +1,221 @@
+@model StudentManagementSystem.BLL.DTOs.StudentScheduleDto
+
+@{
+    ViewData["Title"] = "My Schedule";
+}
+
+<div class="container-fluid">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-primary bg-opacity-10 rounded p-3 me-3">
+                            <i class="bi bi-calendar-check text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <h2 class="mb-0">@Model.TodaysClasses</h2>
+                            <p class="text-muted mb-0">Today's Classes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-success bg-opacity-10 rounded p-3 me-3">
+                            <i class="bi bi-clock text-success fs-4"></i>
+                        </div>
+                        <div>
+                            <h2 class="mb-0">@Model.TotalSessions</h2>
+                            <p class="text-muted mb-0">Total Sessions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-info bg-opacity-10 rounded p-3 me-3">
+                            <i class="bi bi-camera-video text-info fs-4"></i>
+                        </div>
+                        <div>
+                            <h2 class="mb-0">@Model.OnlineClasses</h2>
+                            <p class="text-muted mb-0">Online Classes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Schedule -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-calendar-week me-2"></i>Weekly Schedule</h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="prevWeek">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm disabled" id="currentWeek">
+                        <span id="weekDisplay">@Model.Weeks.FirstOrDefault()?.DisplayText</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="nextWeek">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div id="scheduleContainer">
+                @foreach (var week in Model.Weeks)
+                {
+                    <div class="week-schedule @(week == Model.Weeks.First() ? "" : "d-none")" data-week-index="@Model.Weeks.IndexOf(week)">
+                        <div class="row g-2 p-3">
+                            @foreach (var day in week.Days)
+                            {
+                                <div class="col">
+                                    <div class="day-card @(day.IsToday ? "border-primary" : "border") rounded">
+                                        <div class="day-header text-center py-2 @(day.IsToday ? "bg-primary text-white" : "bg-light")">
+                                            <div class="fw-bold small">@day.DayName@(day.IsToday ? " TODAY" : "")</div>
+                                            <div class="small">@day.DateDisplay</div>
+                                        </div>
+                                        <div class="day-body p-2" style="min-height: 300px;">
+                                            @if (day.Classes.Any())
+                                            {
+                                                @foreach (var classSession in day.Classes)
+                                                {
+                                                    <div class="class-card mb-2 p-2 border-start border-@classSession.Color border-3 bg-@classSession.Color bg-opacity-10 rounded">
+                                                        <div class="fw-bold small">@classSession.CourseCode</div>
+                                                        <div class="small text-truncate">@classSession.CourseName</div>
+                                                        <div class="small text-muted">
+                                                            <i class="bi bi-clock"></i> @classSession.TimeDisplay
+                                                        </div>
+                                                        <div class="small text-muted">
+                                                            <i class="bi bi-geo-alt"></i> @classSession.Room
+                                                        </div>
+                                                        @if (!string.IsNullOrWhiteSpace(classSession.AttendanceStatus))
+                                                        {
+                                                            <div class="mt-1">
+                                                                @if (classSession.AttendanceStatus == "Present")
+                                                                {
+                                                                    <span class="badge bg-success">Present</span>
+                                                                }
+                                                                else if (classSession.AttendanceStatus == "Absent")
+                                                                {
+                                                                    <span class="badge bg-danger">Absent</span>
+                                                                }
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <div class="text-center text-muted py-5">
+                                                    <i class="bi bi-calendar-x fs-3"></i>
+                                                    <div class="small mt-2">No classes</div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Classes -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0"><i class="bi bi-arrow-right-circle me-2"></i>Upcoming Classes</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.UpcomingClasses.Any())
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var upcomingClass in Model.UpcomingClasses)
+                    {
+                        <div class="list-group-item border-0 px-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge bg-primary me-2">@upcomingClass.CourseCode</span>
+                                        <span class="badge bg-secondary">@upcomingClass.ClassName</span>
+                                    </div>
+                                    <h6 class="mb-1">@upcomingClass.CourseName</h6>
+                                    <div class="small text-muted">
+                                        <i class="bi bi-clock"></i> @upcomingClass.StartTime.ToString(@"hh\:mm") - @upcomingClass.EndTime.ToString(@"hh\:mm")
+                                        <span class="mx-2">|</span>
+                                        <i class="bi bi-geo-alt"></i> Room @upcomingClass.Room
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-info">@upcomingClass.TimeUntil</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-calendar-x fs-1"></i>
+                    <p class="mt-2">No upcoming classes</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentWeekIndex = 0;
+        const totalWeeks = @Model.Weeks.Count;
+
+        function showWeek(index) {
+            document.querySelectorAll('.week-schedule').forEach((week, i) => {
+                week.classList.toggle('d-none', i !== index);
+            });
+
+            const weekData = @Html.Raw(Json.Serialize(Model.Weeks));
+            document.getElementById('weekDisplay').textContent = weekData[index].displayText;
+
+            document.getElementById('prevWeek').disabled = index === 0;
+            document.getElementById('nextWeek').disabled = index === totalWeeks - 1;
+        }
+
+        document.getElementById('prevWeek').addEventListener('click', () => {
+            if (currentWeekIndex > 0) {
+                currentWeekIndex--;
+                showWeek(currentWeekIndex);
+            }
+        });
+
+        document.getElementById('nextWeek').addEventListener('click', () => {
+            if (currentWeekIndex < totalWeeks - 1) {
+                currentWeekIndex++;
+                showWeek(currentWeekIndex);
+            }
+        });
+    </script>
+}
+
+<style>
+    @@media (max-width: 768px) {
+        .col {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+</style>

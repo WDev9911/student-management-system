@@ -41,5 +41,11 @@ namespace StudentManagementSystem.DAL.Repositories.Implementations
                 .OrderByDescending(s => s.StartDate)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task UpdateSemesterAsync(Semester semester)
+        {
+            _context.Semesters.Update(semester);
+            await _context.SaveChangesAsync();
+        }
     }
 }

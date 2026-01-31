@@ -1,0 +1,70 @@
+@model StudentManagementSystem.BLL.DTOs.GradeEntryDto
+@{
+    ViewData["Title"] = "Grade Entry";
+}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <strong>@Model.ClassName</strong> - @Model.CourseCode (@Model.CourseName)
+        <div class="text-muted">@Model.SemesterName • @Model.Schedule • Room @Model.Room</div>
+    </div>
+</div>
+
+@if (TempData["GradeMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["GradeMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<form asp-action="SaveGrades" method="post">
+    <input type="hidden" asp-for="ClassId" />
+
+    <div class="mb-3">
+        <button class="btn btn-primary" name="action" value="save">Save Draft</button>
+        <button class="btn btn-success" name="action" value="publish">Publish</button>
+        <button class="btn btn-outline-danger" name="action" value="unpublish">Unpublish</button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Student Code</th>
+                    <th>Full Name</th>
+                    <th>Quiz</th>
+                    <th>Midterm</th>
+                    <th>Assignment</th>
+                    <th>Final</th>
+                    <th>Final Score</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Students.Count; i++)
+                {
+                    <tr>
+                        <td>@Model.Students[i].StudentCode</td>
+                        <td>@Model.Students[i].FullName</td>
+
+                        <td>
+                            <input type="hidden" asp-for="Students[i].EnrollmentId" />
+                            <input class="form-control form-control-sm" asp-for="Students[i].QuizScore" />
+                        </td>
+                        <td><input class="form-control form-control-sm" asp-for="Students[i].MidtermScore" /></td>
+                        <td><input class="form-control form-control-sm" asp-for="Students[i].AssignmentScore" /></td>
+                        <td><input class="form-control form-control-sm" asp-for="Students[i].FinalExamScore" /></td>
+
+                        <td>@Model.Students[i].FinalScore</td>
+                        <td>
+                            <span class="badge @(Model.Students[i].IsPassed ? "bg-success" : "bg-danger")">
+                                @(Model.Students[i].IsPassed ? "Pass" : "Not Pass")
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</form>

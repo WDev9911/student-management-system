@@ -14,6 +14,10 @@ namespace StudentManagementSystem.DAL.Repositories.Implementations
             _context = context;
         }
 
+        public async Task<bool> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync() > 0;
+        }
         public async Task<Wallet?> GetByStudentIdAsync(int studentId)
         {
             return await _context.Wallets

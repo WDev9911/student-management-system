@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StudentManagementSystem.BLL.DTOs;
+using StudentManagementSystem.BLL.DTOs.Attendance;
 using StudentManagementSystem.BLL.Services.Interfaces;
+using StudentManagementSystem.Web.ViewModels.Attendance;
 using System.Security.Claims;
 
 namespace StudentManagementSystem.Web.Controllers
@@ -10,15 +13,21 @@ namespace StudentManagementSystem.Web.Controllers
     {
         private readonly IClassService _classService;
         private readonly IInstructorService _instructorService;
+        private readonly IGradeService _gradeService;
         private readonly ILogger<InstructorController> _logger;
+        private readonly IAttendanceService _attendanceService;
 
         public InstructorController(
             IClassService classService, 
             IInstructorService instructorService,
+            IGradeService gradeService,
+            IAttendanceService attendanceService,
             ILogger<InstructorController> logger)
         {
             _classService = classService;
             _instructorService = instructorService;
+            _gradeService = gradeService;
+            _attendanceService = attendanceService;
             _logger = logger;
         }
 
@@ -69,17 +78,16 @@ namespace StudentManagementSystem.Web.Controllers
             }
         }
 
-        public async Task<IActionResult> Schedule()
+        public async Task<IActionResult> Schedule(DateTime? weekStart)
         {
             ViewData["Title"] = "Teaching Schedule";
-            
+
             try
             {
-                // Get instructor ID from claims
                 var instructorIdClaim = User.FindFirst("InstructorId")?.Value;
-                
+
                 _logger.LogInformation($"Schedule - InstructorId claim: {instructorIdClaim}");
-                
+
                 if (string.IsNullOrEmpty(instructorIdClaim) || !int.TryParse(instructorIdClaim, out int instructorId))
                 {
                     TempData["Error"] = "Unable to retrieve instructor information. Please contact administrator.";
@@ -88,23 +96,26 @@ namespace StudentManagementSystem.Web.Controllers
                 }
 
                 _logger.LogInformation($"Schedule - Fetching classes for instructor ID: {instructorId}");
-                
-                // Get classes assigned to this instructor
+
                 var classes = await _classService.GetClassesByInstructorAsync(instructorId);
-                
+
                 _logger.LogInformation($"Schedule - Found {classes.Count} classes");
-                
-                // Log detailed class information
+
                 foreach (var cls in classes)
                 {
                     _logger.LogInformation($"Class: {cls.ClassName}, Course: {cls.CourseName}, Schedule: {cls.Schedule}, Semester: {cls.SemesterName}");
                 }
-                
+
                 if (classes.Count == 0)
                 {
                     TempData["Info"] = "No classes have been assigned to you yet.";
                 }
-                
+
+                // Week start (Monday) for navigation
+                var baseDate = weekStart ?? DateTime.Now;
+                var monday = baseDate.AddDays(-(int)baseDate.DayOfWeek + 1);
+                ViewData["WeekStart"] = monday.Date;
+
                 return View(classes);
             }
             catch (Exception ex)
@@ -115,10 +126,57 @@ namespace StudentManagementSystem.Web.Controllers
             }
         }
 
-        public IActionResult Attendance()
+        public async Task<IActionResult> Attendance(int? classId, DateTime? date)
         {
             ViewData["Title"] = "Attendance Management";
-            return View();
+
+            var instructorIdClaim = User.FindFirst("InstructorId")?.Value;
+            if (string.IsNullOrEmpty(instructorIdClaim) || !int.TryParse(instructorIdClaim, out int instructorId))
+            {
+                TempData["Error"] = "Unable to retrieve instructor information.";
+                return RedirectToAction("MyClasses");
+            }
+
+            var selectedDate = (date ?? DateTime.Today).Date;
+            var classes = await _classService.GetClassesByInstructorAsync(instructorId);
+            var sessions = await _attendanceService.GetInstructorSessionsAsync(instructorId);
+
+            AttendanceSessionDto? session = null;
+            if (classId.HasValue)
+            {
+                session = await _attendanceService.GetAttendanceSessionAsync(classId.Value, instructorId, selectedDate);
+                if (session == null)
+                {
+                    TempData["Error"] = "No teaching session on the selected date.";
+                }
+            }
+
+            return View(new InstructorAttendanceViewModel
+            {
+                Classes = classes,
+                Sessions = sessions,
+                Session = session,
+                SelectedClassId = classId,
+                SelectedDate = selectedDate
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveAttendance(AttendanceSaveRequest model)
+        {
+            var instructorIdClaim = User.FindFirst("InstructorId")?.Value;
+            if (string.IsNullOrEmpty(instructorIdClaim) || !int.TryParse(instructorIdClaim, out int instructorId))
+            {
+                TempData["Error"] = "Unable to retrieve instructor information.";
+                return RedirectToAction("MyClasses");
+            }
+
+            var success = await _attendanceService.SaveAttendanceAsync(model, instructorId);
+            TempData[success ? "Success" : "Error"] = success
+                ? "Attendance saved successfully."
+                : "Failed to save attendance.";
+
+            return RedirectToAction("Attendance", new { classId = model.ClassId, date = model.SessionDate.ToString("yyyy-MM-dd") });
         }
 
         public IActionResult Grades()
@@ -137,6 +195,87 @@ namespace StudentManagementSystem.Web.Controllers
         {
             ViewData["Title"] = "Notifications";
             return View();
+        }
+
+        public async Task<IActionResult> ClassStudents(int classId)
+        {
+            ViewData["Title"] = "Class Students";
+
+            var instructorIdClaim = User.FindFirst("InstructorId")?.Value;
+            if (string.IsNullOrEmpty(instructorIdClaim) || !int.TryParse(instructorIdClaim, out int instructorId))
+            {
+                TempData["Error"] = "Unable to retrieve instructor information.";
+                return RedirectToAction("MyClasses");
+            }
+
+            var data = await _classService.GetClassStudentsAsync(classId, instructorId);
+            if (data == null)
+            {
+                TempData["Error"] = "Class not found or not assigned to you.";
+                return RedirectToAction("MyClasses");
+            }
+
+            return View(data);
+        }
+
+        public async Task<IActionResult> ClassStudentsList()
+        {
+            ViewData["Title"] = "Class Students";
+
+            var instructorIdClaim = User.FindFirst("InstructorId")?.Value;
+            if (string.IsNullOrEmpty(instructorIdClaim) || !int.TryParse(instructorIdClaim, out int instructorId))
+            {
+                TempData["Error"] = "Unable to retrieve instructor information.";
+                return RedirectToAction("MyClasses");
+            }
+
+            var classes = await _classService.GetClassesByInstructorAsync(instructorId);
+            var result = new List<StudentManagementSystem.BLL.DTOs.ClassStudentsDto>();
+
+            foreach (var cls in classes)
+            {
+                var data = await _classService.GetClassStudentsAsync(cls.ClassId, instructorId);
+                if (data != null)
+                {
+                    result.Add(data);
+                }
+            }
+
+            return View(result);
+        }
+
+        public async Task<IActionResult> GradeEntry(int classId)
+        {
+            var instructorIdClaim = User.FindFirst("InstructorId")?.Value;
+            if (string.IsNullOrEmpty(instructorIdClaim) || !int.TryParse(instructorIdClaim, out int instructorId))
+            {
+                TempData["Error"] = "Unable to retrieve instructor information.";
+                return RedirectToAction("MyClasses");
+            }
+
+            var model = await _gradeService.GetGradeEntryAsync(classId, instructorId);
+            if (model == null)
+            {
+                TempData["Error"] = "Class not found or not assigned to you.";
+                return RedirectToAction("MyClasses");
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveGrades(GradeEntryDto model, string action)
+        {
+            await _gradeService.SaveGradesAsync(model, action);
+
+            TempData["GradeMessage"] = action switch
+            {
+                "publish" => "Grades have been published successfully.",
+                "unpublish" => "Grades have been unpublished successfully.",
+                _ => "Grades saved successfully."
+            };
+
+            return RedirectToAction("GradeEntry", new { classId = model.ClassId });
         }
     }
 }

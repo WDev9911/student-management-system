@@ -8,5 +8,6 @@ namespace StudentManagementSystem.DAL.Repositories.Interfaces
         Task<Semester?> GetSemesterByIdAsync(int id);
         Task<Semester?> GetCurrentSemesterAsync();
         Task<Semester?> GetSemesterByNumberAsync(int semesterNumber);
+        Task UpdateSemesterAsync(Semester semester);
     }
 }

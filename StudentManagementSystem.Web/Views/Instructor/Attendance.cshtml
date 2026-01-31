@@ -1,0 +1,129 @@
+@model StudentManagementSystem.Web.ViewModels.Attendance.InstructorAttendanceViewModel
+
+@{
+    ViewData["Title"] = "Attendance Management";
+}
+
+<div class="container-fluid">
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white border-0">
+            <h5 class="mb-0">Create / Edit Attendance</h5>
+        </div>
+        <div class="card-body">
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["Error"]</div>
+            }
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">@TempData["Success"]</div>
+            }
+
+            <form method="get" asp-action="Attendance" class="row g-2 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Class</label>
+                    <select class="form-select" name="classId" required>
+                        <option value="">-- Select class --</option>
+                        @foreach (var cls in Model.Classes)
+                        {
+                            <option value="@cls.ClassId" selected="@(Model.SelectedClassId == cls.ClassId)">
+                                @cls.ClassName - @cls.CourseCode (@cls.SemesterName)
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Date</label>
+                    <input class="form-control" type="date" name="date" value="@Model.SelectedDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100" type="submit">Load</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.Session == null)
+    {
+        <div class="alert alert-info">Select a class and date to take attendance.</div>
+    }
+    else
+    {
+        <form asp-action="SaveAttendance" method="post">
+            <input type="hidden" name="ClassId" value="@Model.Session.ClassId" />
+            <input type="hidden" name="SessionDate" value="@Model.Session.SessionDate.ToString("yyyy-MM-dd")" />
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>@Model.Session.ClassName</strong> -
+                        @Model.Session.CourseCode @Model.Session.CourseName
+                        <span class="text-muted ms-2">(@Model.Session.SessionDate.ToString("dd/MM/yyyy"))</span>
+                    </div>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-success" id="markAllPresent">All Present</button>
+                        <button type="button" class="btn btn-outline-danger" id="markAllAbsent">All Absent</button>
+                    </div>
+                </div>
+
+                <div class="card-body table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 120px;">Student Code</th>
+                                <th>Full Name</th>
+                                <th style="width: 200px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.Session.Students.Count; i++)
+                            {
+                                var student = Model.Session.Students[i];
+                                <tr>
+                                    <td>@student.StudentCode</td>
+                                    <td>@student.FullName</td>
+                                    <td>
+                                        <input type="hidden" name="Students[@i].StudentId" value="@student.StudentId" />
+                                        <div class="btn-group" role="group">
+                                            <input type="radio"
+                                                   class="btn-check"
+                                                   name="Students[@i].Status"
+                                                   id="present-@student.StudentId"
+                                                   value="Present"
+                                                   checked="@(student.Status == "Present")" />
+                                            <label class="btn btn-outline-success btn-sm" for="present-@student.StudentId">Present</label>
+
+                                            <input type="radio"
+                                                   class="btn-check"
+                                                   name="Students[@i].Status"
+                                                   id="absent-@student.StudentId"
+                                                   value="Absent"
+                                                   checked="@(student.Status == "Absent")" />
+                                            <label class="btn btn-outline-danger btn-sm" for="absent-@student.StudentId">Absent</label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-success">Save Attendance</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('markAllPresent')?.addEventListener('click', () => {
+            document.querySelectorAll('input[type="radio"][value="Present"]').forEach(r => r.checked = true);
+        });
+
+        document.getElementById('markAllAbsent')?.addEventListener('click', () => {
+            document.querySelectorAll('input[type="radio"][value="Absent"]').forEach(r => r.checked = true);
+        });
+    </script>
+}

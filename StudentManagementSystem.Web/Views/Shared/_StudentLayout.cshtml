@@ -27,23 +27,30 @@
                 </a>
 
                 <div class="nav-group">
-                    <button class="nav-group-toggle" data-target="course-registration">
-                        <span>Course Registration</span>
-                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="chevron">
-                            <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-                        </svg>
-                    </button>
+                    <div class="nav-group-header">
+                        <a asp-controller="Student" asp-action="CourseRegistration" class="student-nav-link">
+                            <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 1 1 4l7 3 7-3-7-3Zm0 7L1 5v6l7 3 7-3V5L8 8Z"/>
+                            </svg>
+                            <span>Course Registration</span>
+                        </a>
+                        <button type="button" class="nav-group-toggle" data-target="course-registration" aria-label="Toggle Course Registration">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="chevron">
+                                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                        </button>
+                    </div>
                     <div class="nav-group-content" id="course-registration">
-                        <a asp-controller="Student" asp-action="Enrollment" class="student-nav-link student-nav-sub">
+                        <a asp-controller="Student" asp-action="CourseRegistration" class="student-nav-link student-nav-sub">
                             <span>Available Courses</span>
                         </a>
-                        <a asp-controller="Student" asp-action="Enrollment" class="student-nav-link student-nav-sub">
+                        <a asp-controller="Student" asp-action="CourseRegistration" class="student-nav-link student-nav-sub">
                             <span>Register New Course</span>
                         </a>
-                        <a asp-controller="Student" asp-action="Enrollment" class="student-nav-link student-nav-sub">
+                        <a asp-controller="Student" asp-action="CourseRegistration" class="student-nav-link student-nav-sub">
                             <span>My Enrollments</span>
                         </a>
-                        <a asp-controller="Student" asp-action="Enrollment" class="student-nav-link student-nav-sub">
+                        <a asp-controller="Student" asp-action="CourseRegistration" class="student-nav-link student-nav-sub">
                             <span>Enrollment History</span>
                         </a>
                     </div>
@@ -57,14 +64,14 @@
                         </svg>
                     </button>
                     <div class="nav-group-content" id="academic-results">
-                        <a asp-controller="Student" asp-action="Grades" class="student-nav-link student-nav-sub">
-                            <span>View All Grades</span>
+                        <a asp-controller="Student" asp-action="Grades" class="student-nav-link">
+                            <span>Grades</span>
                         </a>
-                        <a asp-controller="Student" asp-action="Grades" class="student-nav-link student-nav-sub">
-                            <span>Grades by Semester</span>
+                        <a asp-controller="Student" asp-action="PendingCourses" class="student-nav-link">
+                            <span>Pending Courses</span>
                         </a>
-                        <a asp-controller="Student" asp-action="Grades" class="student-nav-link student-nav-sub">
-                            <span>GPA/CGPA</span>
+                        <a asp-controller="Student" asp-action="RetakeRegistration" class="student-nav-link">
+                            <span>Retake Registration</span>
                         </a>
                     </div>
                 </div>
@@ -105,6 +112,9 @@
                         </a>
                         <a asp-controller="Student" asp-action="Schedule" class="student-nav-link student-nav-sub">
                             <span>Exam Schedule</span>
+                        </a>
+                        <a asp-controller="Student" asp-action="Attendance" class="student-nav-link student-nav-sub">
+                            <span>Attendance</span>
                         </a>
                     </div>
                 </div>

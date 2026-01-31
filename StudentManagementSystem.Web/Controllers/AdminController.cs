@@ -11,11 +11,16 @@ namespace StudentManagementSystem.Web.Controllers
     {
         private readonly IRegistrationService _registrationService;
         private readonly IInstructorService _instructorService;
+        private readonly ISemesterService _semesterService;
 
-        public AdminController(IRegistrationService registrationService, IInstructorService instructorService)
+        public AdminController(
+            IRegistrationService registrationService,
+            IInstructorService instructorService,
+            ISemesterService semesterService)
         {
             _registrationService = registrationService;
             _instructorService = instructorService;
+            _semesterService = semesterService;
         }
 
         public IActionResult Index()
@@ -28,6 +33,30 @@ namespace StudentManagementSystem.Web.Controllers
         public IActionResult Classes()
         {
             return Redirect("/classes.html");
+        }
+
+        public async Task<IActionResult> Semesters()
+        {
+            ViewData["Title"] = "Manage Semesters";
+            var semesters = await _semesterService.GetAllSemestersAsync();
+            return View(semesters);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateSemesterDates(int semesterId, DateTime startDate, DateTime endDate)
+        {
+            var result = await _semesterService.UpdateSemesterDatesAsync(semesterId, startDate, endDate);
+            if (result.Success)
+            {
+                TempData["SuccessMessage"] = result.Message;
+            }
+            else
+            {
+                TempData["ErrorMessage"] = result.Message;
+            }
+
+            return RedirectToAction(nameof(Semesters));
         }
 
         public async Task<IActionResult> Instructors()

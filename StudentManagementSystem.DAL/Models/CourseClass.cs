@@ -59,9 +59,13 @@ namespace StudentManagementSystem.DAL.Models
         [StringLength(20)]
         public string Status { get; set; } = "Open"; // "Open", "Full", "Closed"
 
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         // Navigation properties
         public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+        public virtual ICollection<AttendanceSession> AttendanceSessions { get; set; } = new List<AttendanceSession>();
     }
 }

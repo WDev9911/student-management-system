@@ -12,17 +12,20 @@ namespace StudentManagementSystem.BLL.Services.Implementations
         private readonly ICourseRepository _courseRepo;
         private readonly ISemesterRepository _semesterRepo;
         private readonly IInstructorRepository _instructorRepo;
+        private readonly IEnrollmentRepository _enrollmentRepo;
 
         public ClassService(
             IClassRepository classRepo,
             ICourseRepository courseRepo,
             ISemesterRepository semesterRepo,
-            IInstructorRepository instructorRepo)
+            IInstructorRepository instructorRepo,
+            IEnrollmentRepository enrollmentRepo)
         {
             _classRepo = classRepo;
             _courseRepo = courseRepo;
             _semesterRepo = semesterRepo;
             _instructorRepo = instructorRepo;
+            _enrollmentRepo = enrollmentRepo;
         }
 
         public async Task<List<ClassDto>> GetAllClassesAsync()
@@ -78,10 +81,21 @@ namespace StudentManagementSystem.BLL.Services.Implementations
                 if (instructor == null) throw new InvalidOperationException("Instructor not found.");
             }
 
-            // 6. Parse schedule
+            // 6. Validate dates
+            if (!request.StartDate.HasValue || !request.EndDate.HasValue)
+            {
+                throw new InvalidOperationException("Class start and end dates are required.");
+            }
+
+            if (request.StartDate.Value.Date > request.EndDate.Value.Date)
+            {
+                throw new InvalidOperationException("Class start date must be before end date.");
+            }
+
+            // 7. Parse schedule
             var (dayOfWeek, startTime, endTime) = ParseSchedule(request.Schedule);
 
-            // 7. Check conflicts
+            // 8. Check conflicts
             var conflictCheck = await CheckConflictsAsync(new ConflictCheckRequest
             {
                 InstructorId = request.InstructorId,
@@ -95,7 +109,7 @@ namespace StudentManagementSystem.BLL.Services.Implementations
                 throw new InvalidOperationException($"Schedule conflicts detected: {string.Join("; ", conflictCheck.Conflicts)}");
             }
 
-            // 8. Create
+            // 9. Create
             var courseClass = new CourseClass
             {
                 ClassName = request.ClassName,
@@ -110,6 +124,8 @@ namespace StudentManagementSystem.BLL.Services.Implementations
                 MaxStudents = request.MaxStudents,
                 CurrentEnrollment = 0,
                 Status = "Open",
+                StartDate = request.StartDate.Value.Date,
+                EndDate = request.EndDate.Value.Date,
                 CreatedDate = DateTime.Now
             };
 
@@ -138,6 +154,16 @@ namespace StudentManagementSystem.BLL.Services.Implementations
                 if (instructor == null) throw new InvalidOperationException("Instructor not found.");
             }
 
+            if (!request.StartDate.HasValue || !request.EndDate.HasValue)
+            {
+                throw new InvalidOperationException("Class start and end dates are required.");
+            }
+
+            if (request.StartDate.Value.Date > request.EndDate.Value.Date)
+            {
+                throw new InvalidOperationException("Class start date must be before end date.");
+            }
+
             var (dayOfWeek, startTime, endTime) = ParseSchedule(request.Schedule);
 
             var conflictCheck = await CheckConflictsAsync(new ConflictCheckRequest
@@ -163,6 +189,8 @@ namespace StudentManagementSystem.BLL.Services.Implementations
             courseClass.Room = request.Room;
             courseClass.MaxStudents = request.MaxStudents;
             courseClass.Status = request.Status;
+            courseClass.StartDate = request.StartDate.Value.Date;
+            courseClass.EndDate = request.EndDate.Value.Date;
 
             await _classRepo.UpdateAsync(courseClass);
             return (await GetClassByIdAsync(id))!;
@@ -242,6 +270,46 @@ namespace StudentManagementSystem.BLL.Services.Implementations
             return result;
         }
 
+        public async Task<ClassStudentsDto?> GetClassStudentsAsync(int classId, int instructorId)
+        {
+            var courseClass = await _classRepo.GetByIdAsync(classId);
+            if (courseClass == null || courseClass.InstructorId != instructorId)
+            {
+                return null;
+            }
+
+            var enrollments = await _enrollmentRepo.GetEnrollmentsByClassIdAsync(classId);
+
+            var students = enrollments.Select(e => new ClassStudentItemDto
+            {
+                StudentId = e.StudentId,
+                StudentCode = e.Student.StudentCode,
+                FullName = e.Student.FullName,
+                Email = e.Student.Email,
+                Phone = e.Student.Phone,
+                Status = e.Status,
+                PaidAmount = e.PaidAmount,
+                EnrollmentDate = e.EnrollmentDate
+            }).ToList();
+
+            return new ClassStudentsDto
+            {
+                ClassId = courseClass.ClassId,
+                ClassName = courseClass.ClassName,
+                CourseCode = courseClass.Course.CourseCode,
+                CourseName = courseClass.Course.CourseName,
+                SemesterName = courseClass.Semester.SemesterName,
+                Schedule = courseClass.Schedule,
+                Room = courseClass.Room,
+                CurrentEnrollment = courseClass.CurrentEnrollment,
+                MaxStudents = courseClass.MaxStudents,
+                ActiveStudents = students.Count(s => s.Status == "Active"),
+                DroppedStudents = students.Count(s => s.Status == "Dropped"),
+                PaidStudents = students.Count(s => s.PaidAmount > 0),
+                Students = students
+            };
+        }
+
         // HELPERS
         private ClassDto MapToDto(CourseClass c)
         {
@@ -264,6 +332,8 @@ namespace StudentManagementSystem.BLL.Services.Implementations
                 MaxStudents = c.MaxStudents,
                 CurrentEnrollment = c.CurrentEnrollment,
                 Status = c.Status,
+                StartDate = c.StartDate,
+                EndDate = c.EndDate,
                 CreatedDate = c.CreatedDate
             };
         }

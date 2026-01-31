@@ -32,7 +32,7 @@ namespace StudentManagementSystem.DAL.Models
         // Điểm thành phần (0-10 scale)
         [Column(TypeName = "decimal(5,2)")]
         [Range(0, 10)]
-        public decimal AttendanceScore { get; set; } = 0; // Chuyên cần (10%)
+        public decimal QuizScore { get; set; } = 0; // Quiz (10%)
 
         [Column(TypeName = "decimal(5,2)")]
         [Range(0, 10)]
@@ -49,7 +49,7 @@ namespace StudentManagementSystem.DAL.Models
         // Điểm tổng kết
         [Column(TypeName = "decimal(5,2)")]
         [Range(0, 10)]
-        public decimal FinalScore { get; set; } = 0; // = 0.1*Att + 0.2*Mid + 0.2*Ass + 0.5*Final
+        public decimal FinalScore { get; set; } = 0; // = 0.1*Quiz + 0.2*Mid + 0.2*Ass + 0.5*Final
 
         [StringLength(5)]
         public string? LetterGrade { get; set; } // "A+", "A", "B+", "B", "C+", "C", "D+", "D", "F"
@@ -59,6 +59,8 @@ namespace StudentManagementSystem.DAL.Models
         public decimal GradePoint { get; set; } = 0; // 4.0 scale (A+=4.0, A=3.7, B+=3.3...)
 
         public bool IsPassed { get; set; } = false; // >= 5.0 = Pass
+
+        public bool IsPublished { get; set; } = false; // Publish/Unpublish
 
         public DateTime? GradedDate { get; set; } // Ngày nhập điểm
 

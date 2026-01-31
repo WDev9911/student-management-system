@@ -277,3 +277,18 @@ body {
 .schedule-item li {
     margin-bottom: 4px;
 }
+
+.nav-group-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nav-group-header .student-nav-link {
+    flex: 1;
+}
+
+.nav-group-header .nav-group-toggle {
+    width: auto;
+    padding: 10px 12px;
+}

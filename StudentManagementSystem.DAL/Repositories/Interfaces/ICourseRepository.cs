@@ -7,5 +7,6 @@ namespace StudentManagementSystem.DAL.Repositories.Interfaces
         Task<List<Course>> GetAllCoursesAsync();
         Task<Course?> GetCourseByIdAsync(int id);
         Task<List<Course>> GetCoursesByMajorAndSemesterAsync(int majorId, int semesterNumber);
+        Task<List<Course>> GetCoursesByMajorAsync(int majorId);
     }
 }

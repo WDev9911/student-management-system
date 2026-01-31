@@ -68,5 +68,25 @@ namespace StudentManagementSystem.BLL.Services.Implementations
                 Status = semester.Status ?? "Active"
             };
         }
+
+        public async Task<(bool Success, string Message)> UpdateSemesterDatesAsync(int semesterId, DateTime startDate, DateTime endDate)
+        {
+            if (endDate < startDate)
+            {
+                return (false, "Ngày k?t thúc ph?i l?n h?n ho?c b?ng ngày b?t ??u.");
+            }
+
+            var semester = await _semesterRepository.GetSemesterByIdAsync(semesterId);
+            if (semester == null)
+            {
+                return (false, "Không tìm th?y h?c k?.");
+            }
+
+            semester.StartDate = startDate;
+            semester.EndDate = endDate;
+
+            await _semesterRepository.UpdateSemesterAsync(semester);
+            return (true, "C?p nh?t ngày h?c k? thành công.");
+        }
     }
 }

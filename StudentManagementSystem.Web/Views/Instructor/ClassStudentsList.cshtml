@@ -1,0 +1,70 @@
+@model List<StudentManagementSystem.BLL.DTOs.ClassStudentsDto>
+
+@{
+    ViewData["Title"] = "Class Students";
+}
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">
+        No classes found or no students enrolled.
+    </div>
+}
+else
+{
+    @foreach (var cls in Model)
+    {
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>@cls.ClassName</strong> - @cls.CourseCode (@cls.CourseName)
+                    <div class="text-muted small">@cls.Schedule • Room @cls.Room</div>
+                </div>
+                <span class="badge bg-primary">@cls.CurrentEnrollment / @cls.MaxStudents</span>
+            </div>
+
+            <div class="card-body">
+                @if (!cls.Students.Any())
+                {
+                    <div class="alert alert-info mb-0">No students enrolled.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student Code</th>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Status</th>
+                                    <th>Paid</th>
+                                    <th>Enrollment Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var s in cls.Students)
+                                {
+                                    <tr>
+                                        <td>@s.StudentCode</td>
+                                        <td>@s.FullName</td>
+                                        <td>@s.Email</td>
+                                        <td>@s.Phone</td>
+                                        <td>
+                                            <span class="badge @(s.Status == "Active" ? "bg-success" : "bg-secondary")">
+                                                @s.Status
+                                            </span>
+                                        </td>
+                                        <td>@s.PaidAmount.ToString("N0") VND</td>
+                                        <td>@s.EnrollmentDate.ToString("dd/MM/yyyy")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}

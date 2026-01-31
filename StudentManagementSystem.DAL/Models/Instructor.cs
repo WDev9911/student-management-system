@@ -46,5 +46,6 @@ namespace StudentManagementSystem.DAL.Models
         public virtual User? User { get; set; }
         public virtual ICollection<InstructorAssignment> InstructorAssignments { get; set; } = new List<InstructorAssignment>();
         public virtual ICollection<CourseClass> CourseClasses { get; set; } = new List<CourseClass>();
+        public virtual ICollection<AttendanceSession> AttendanceSessions { get; set; } = new List<AttendanceSession>();
     }
 }

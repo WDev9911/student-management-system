@@ -6,12 +6,16 @@ namespace StudentManagementSystem.BLL.DTOs
         public string FullName { get; set; } = string.Empty;
         public decimal WalletBalance { get; set; }
         public int EnrolledCoursesCount { get; set; }
+
+        public decimal SemesterGPA { get; set; }
+        public decimal CumulativeGPA { get; set; }
         public decimal CurrentGPA { get; set; }
+
         public int CreditsCompleted { get; set; }
         public int CurrentSemester { get; set; }
         public int TotalCreditsRequired { get; set; }
         public List<RecentNotificationDto> RecentNotifications { get; set; } = new();
-        public List<WeekScheduleDto> ThisWeekSchedule { get; set; } = new();
+        public List<DashboardWeekScheduleDto> ThisWeekSchedule { get; set; } = new();
     }
 
     public class RecentNotificationDto
@@ -21,13 +25,13 @@ namespace StudentManagementSystem.BLL.DTOs
         public DateTime CreatedDate { get; set; }
     }
 
-    public class WeekScheduleDto
+    public class DashboardWeekScheduleDto
     {
         public string DayOfWeek { get; set; } = string.Empty;
-        public List<ClassSessionDto> Classes { get; set; } = new();
+        public List<DashboardClassSessionDto> Classes { get; set; } = new();
     }
 
-    public class ClassSessionDto
+    public class DashboardClassSessionDto
     {
         public string CourseName { get; set; } = string.Empty;
         public TimeSpan StartTime { get; set; }

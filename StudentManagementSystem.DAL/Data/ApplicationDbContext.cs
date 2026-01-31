@@ -10,7 +10,7 @@ namespace StudentManagementSystem.DAL.Data
         {
         }
 
-        // DbSets cho 15 tables
+        // DbSets cho 16 tables
         public DbSet<Major> Majors { get; set; }
         public DbSet<Semester> Semesters { get; set; }
         public DbSet<Course> Courses { get; set; }
@@ -26,6 +26,9 @@ namespace StudentManagementSystem.DAL.Data
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<RegistrationRequest> RegistrationRequests { get; set; }
+        public DbSet<PendingEnrollment> PendingEnrollments { get; set; } // Thêm DbSet
+        public DbSet<AttendanceSession> AttendanceSessions { get; set; }
+        public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -153,6 +156,51 @@ namespace StudentManagementSystem.DAL.Data
                 .HasOne(t => t.Wallet)
                 .WithMany(w => w.Transactions)
                 .HasForeignKey(t => t.WalletId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // PendingEnrollment relationships
+            modelBuilder.Entity<PendingEnrollment>()
+                .HasOne(p => p.Student)
+                .WithMany()
+                .HasForeignKey(p => p.StudentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PendingEnrollment>()
+                .HasOne(p => p.Course)
+                .WithMany()
+                .HasForeignKey(p => p.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AttendanceSession>()
+                .HasIndex(a => new { a.ClassId, a.SessionDate })
+                .IsUnique();
+
+            modelBuilder.Entity<AttendanceSession>()
+                .HasOne(a => a.CourseClass)
+                .WithMany(c => c.AttendanceSessions)
+                .HasForeignKey(a => a.ClassId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AttendanceSession>()
+                .HasOne(a => a.Instructor)
+                .WithMany(i => i.AttendanceSessions)
+                .HasForeignKey(a => a.InstructorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AttendanceRecord>()
+                .HasIndex(r => new { r.AttendanceSessionId, r.StudentId })
+                .IsUnique();
+
+            modelBuilder.Entity<AttendanceRecord>()
+                .HasOne(r => r.AttendanceSession)
+                .WithMany(s => s.Records)
+                .HasForeignKey(r => r.AttendanceSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AttendanceRecord>()
+                .HasOne(r => r.Student)
+                .WithMany(s => s.AttendanceRecords)
+                .HasForeignKey(r => r.StudentId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 

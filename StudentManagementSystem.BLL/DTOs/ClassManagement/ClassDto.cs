@@ -19,6 +19,8 @@ namespace StudentManagementSystem.BLL.DTOs
         public int MaxStudents { get; set; }
         public int CurrentEnrollment { get; set; }
         public string Status { get; set; } = string.Empty;
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
         public DateTime CreatedDate { get; set; }
     }
 
@@ -31,6 +33,8 @@ namespace StudentManagementSystem.BLL.DTOs
         public string Schedule { get; set; } = string.Empty;
         public string Room { get; set; } = string.Empty;
         public int MaxStudents { get; set; } = 45;
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
     }
 
     public class UpdateClassRequest
@@ -41,6 +45,8 @@ namespace StudentManagementSystem.BLL.DTOs
         public string Room { get; set; } = string.Empty;
         public int MaxStudents { get; set; }
         public string Status { get; set; } = string.Empty;
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
     }
 
     public class ConflictCheckRequest

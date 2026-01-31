@@ -1,0 +1,392 @@
+@model List<StudentManagementSystem.BLL.DTOs.CourseRegistration.SemesterCoursesDto>
+
+@{
+    ViewData["Title"] = "Course Registration";
+    var currentSemester = Model.FirstOrDefault(s => s.IsCurrentSemester);
+    var openSemester = Model.FirstOrDefault(s => s.CanRegister) ?? currentSemester;
+    var hasRegistered = currentSemester?.HasRegisteredCourses ?? false;
+    var pendingCourses = openSemester?.PendingCourses ?? new List<StudentManagementSystem.BLL.DTOs.CourseRegistration.PendingCourseDto>();
+    var canRegister = openSemester?.CanRegister ?? false;
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>Course Registration</h3>
+            <p class="text-muted">Select classes for your current semester</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Semester Tabs -->
+            <ul class="nav nav-tabs" id="semesterTabs" role="tablist">
+                @foreach (var semester in Model)
+                {
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link @(semester.IsCurrentSemester ? "active" : "")"
+                                id="semester-@semester.SemesterNumber-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#semester-@semester.SemesterNumber"
+                                type="button">
+                            @semester.SemesterName
+                            @if (semester.IsCurrentSemester)
+                            {
+                                <span class="badge bg-success ms-2">Current</span>
+                            }
+                        </button>
+                    </li>
+                }
+            </ul>
+
+            <!-- Semester Content -->
+            <div class="tab-content mt-3" id="semesterTabsContent">
+                @foreach (var semester in Model)
+                {
+                    <div class="tab-pane fade @(semester.IsCurrentSemester ? "show active" : "")"
+                         id="semester-@semester.SemesterNumber"
+                         role="tabpanel">
+
+                        @if (!semester.CanRegister)
+                        {
+                            <div class="alert alert-info">
+                                This semester is view-only. You can only register for your current semester.
+                            </div>
+                        }
+
+                        @foreach (var course in semester.Courses)
+                        {
+                            var isLocked = course.IsAlreadyRegistered;
+                            <div class="card mb-3 @(!course.IsEligible ? "border-danger" : "")" data-course-fee="@course.TuitionFee">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5 class="card-title">
+                                                @course.CourseCode - @course.CourseName
+                                                @if (course.IsAlreadyRegistered)
+                                                {
+                                                    <span class="badge bg-success ms-2">Registered</span>
+                                                }
+                                                @if (!course.IsEligible)
+                                                {
+                                                    <span class="badge bg-danger ms-2">Blocked</span>
+                                                }
+                                            </h5>
+                                            <p class="text-muted mb-1">
+                                                Credits: @course.Credits &nbsp;|&nbsp;
+                                                Fee: @course.TuitionFee.ToString("N0") VND
+                                            </p>
+                                            @if (!string.IsNullOrEmpty(course.BlockReason))
+                                            {
+                                                <p class="text-danger mb-0">@course.BlockReason</p>
+                                            }
+                                        </div>
+                                        <div class="col-md-6">
+                                            @if (semester.CanRegister && course.IsEligible && course.AvailableClasses.Any())
+                                            {
+                                                <div class="form-check">
+                                                    <input class="form-check-input course-checkbox"
+                                                           type="checkbox"
+                                                           data-course-id="@course.CourseId"
+                                                           id="course-@course.CourseId"
+                                                           @(isLocked ? "disabled" : "")
+                                                           @(course.IsAlreadyRegistered ? "checked" : "")>
+                                                    <label class="form-check-label" for="course-@course.CourseId">
+                                                        @(course.IsAlreadyRegistered ? "Registered class" : "Register this course")
+                                                    </label>
+                                                </div>
+                                                <select class="form-select mt-2 class-selector"
+                                                        data-course-id="@course.CourseId"
+                                                        @(isLocked ? "disabled" : "")
+                                                        @(course.IsAlreadyRegistered ? "" : "disabled")>
+                                                    <option value="">-- Select Class --</option>
+                                                    @foreach (var classOption in course.AvailableClasses)
+                                                    {
+                                                        <option value="@classOption.ClassId"
+                                                                data-day="@classOption.DayOfWeek"
+                                                                data-start="@classOption.StartTime"
+                                                                data-end="@classOption.EndTime"
+                                                                data-startdate="@(classOption.StartDate?.ToString("dd/MM/yyyy"))"
+                                                                data-enddate="@(classOption.EndDate?.ToString("dd/MM/yyyy"))"
+                                                                selected="@(classOption.ClassId == course.RegisteredClassId ? "selected" : (string?)null)">
+                                                            @classOption.ClassName - @classOption.Schedule - @classOption.Room (@classOption.InstructorName)
+                                                            @if (classOption.StartDate.HasValue && classOption.EndDate.HasValue)
+                                                            {
+                                                                <text> | @classOption.StartDate.Value.ToString("dd/MM/yyyy") - @classOption.EndDate.Value.ToString("dd/MM/yyyy")</text>
+                                                            }
+                                                        </option>
+                                                    }
+                                                </select>
+                                            }
+                                            else if (!semester.CanRegister)
+                                            {
+                                                <span class="badge bg-secondary">View Only</span>
+                                            }
+                                            else if (!course.IsEligible)
+                                            {
+                                                <span class="badge bg-danger">Not Eligible</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark">No Classes Available</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Summary Panel -->
+        <div class="col-md-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Registration Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div id="selectedCourses">
+                        @if (hasRegistered)
+                        {
+                            <ul class="list-unstyled">
+                                @foreach (var item in currentSemester!.RegisteredCourses)
+                                {
+                                    <li class="mb-2">
+                                        <strong>@item.CourseCode - @item.CourseName</strong><br>
+                                        <small class="text-muted">@item.ClassName - @item.Schedule</small><br>
+                                        <small class="text-success">@item.TuitionFee.ToString("N0") VND</small>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center">No courses selected</p>
+                        }
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total Fee:</strong>
+                        <strong id="totalFee">0 VND</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <span>Wallet Balance:</span>
+                        <span id="walletBalance">@ViewBag.WalletBalance VND</span>
+                    </div>
+
+                    @if (hasRegistered)
+                    {
+                        <div class="alert alert-success mt-3">
+                            You have already registered some courses in this semester.
+                        </div>
+                        <a class="btn btn-outline-primary w-100 mt-2" href="@Url.Action("Schedule", "Student")">
+                            View Schedule
+                        </a>
+                    }
+
+                    <div id="conflictWarning" class="alert alert-danger mt-3 d-none">
+                        Schedule conflict detected!
+                    </div>
+                    <button id="submitEnrollment" class="btn btn-success w-100 mt-3" @(!canRegister ? "disabled" : "")>
+                        @(canRegister ? "Submit Registration" : "Registration Closed")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (pendingCourses.Any())
+{
+    <div class="alert alert-warning mt-3">
+        <strong>Pending Courses (Retake -50% Fee)</strong>
+        <ul class="mb-0">
+            @foreach (var p in pendingCourses)
+            {
+                <li>@p.CourseCode - @p.CourseName: @p.RequiredFee.ToString("N0") VND</li>
+            }
+        </ul>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        const hasRegistered = @hasRegistered.ToString().ToLower();
+        const canRegister = @canRegister.ToString().ToLower();
+        const retakeCourseId = @((int)(ViewBag.RetakeCourseId ?? 0));
+
+        if (retakeCourseId > 0) {
+            const checkbox = document.querySelector(`.course-checkbox[data-course-id="${retakeCourseId}"]`);
+            const selector = document.querySelector(`.class-selector[data-course-id="${retakeCourseId}"]`);
+
+            if (checkbox && !checkbox.disabled) {
+                checkbox.checked = true;
+                if (selector) selector.disabled = false;
+                checkbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        if (!canRegister) {
+            document.getElementById('submitEnrollment').disabled = true;
+        } else {
+            const selectedClasses = new Map();
+            let totalFee = 0;
+            const existingSummaryHtml = document.getElementById('selectedCourses').innerHTML;
+
+            // Enable/disable class selector when course is checked
+            document.querySelectorAll('.course-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const courseId = this.dataset.courseId;
+                    const selector = document.querySelector(`.class-selector[data-course-id="${courseId}"]`);
+
+                    if (this.checked) {
+                        selector.disabled = false;
+                    } else {
+                        selector.disabled = true;
+                        selector.value = '';
+                        selectedClasses.delete(courseId);
+                        updateSummary();
+                    }
+                });
+            });
+
+            // Handle class selection
+            document.querySelectorAll('.class-selector').forEach(selector => {
+                selector.addEventListener('change', function() {
+                    const courseId = this.dataset.courseId;
+                    const classId = this.value;
+                    const selectedOption = this.options[this.selectedIndex];
+
+                    if (classId) {
+                        const card = this.closest('.card');
+                        const courseFee = parseFloat(card.dataset.courseFee);
+
+                        const classInfo = {
+                            classId: parseInt(classId),
+                            className: selectedOption.text.split(' - ')[0],
+                            day: selectedOption.dataset.day,
+                            startTime: selectedOption.dataset.start,
+                            endTime: selectedOption.dataset.end,
+                            startDate: selectedOption.dataset.startdate,
+                            endDate: selectedOption.dataset.enddate,
+                            courseName: card.querySelector('.card-title').textContent.trim(),
+                            fee: courseFee
+                        };
+
+                        selectedClasses.set(courseId, classInfo);
+                    } else {
+                        selectedClasses.delete(courseId);
+                    }
+
+                    updateSummary();
+                    checkScheduleConflict();
+                });
+            });
+
+            function updateSummary() {
+                const summaryDiv = document.getElementById('selectedCourses');
+                const submitBtn = document.getElementById('submitEnrollment');
+
+                if (selectedClasses.size === 0) {
+                    summaryDiv.innerHTML = existingSummaryHtml || '<p class="text-muted text-center">No courses selected</p>';
+                    submitBtn.disabled = true;
+                    totalFee = 0;
+                } else {
+                    let html = existingSummaryHtml || '';
+                    html += '<ul class="list-unstyled">';
+                    totalFee = 0;
+
+                    selectedClasses.forEach((info) => {
+                        html += `<li class="mb-2">
+    <strong>${info.courseName}</strong><br>
+    <small class="text-muted">${info.className} - ${info.day}</small><br>
+    <small class="text-muted">${info.startDate || ''} - ${info.endDate || ''}</small><br>
+    <small class="text-success">${info.fee.toLocaleString()} VND</small>
+</li>`;
+                        totalFee += info.fee;
+                    });
+
+                    html += '</ul>';
+                    summaryDiv.innerHTML = html;
+                    submitBtn.disabled = false;
+                }
+
+                document.getElementById('totalFee').textContent = totalFee.toLocaleString() + ' VND';
+            }
+
+            function checkScheduleConflict() {
+                const classes = Array.from(selectedClasses.values());
+                const conflictDiv = document.getElementById('conflictWarning');
+                let hasConflict = false;
+
+                for (let i = 0; i < classes.length; i++) {
+                    for (let j = i + 1; j < classes.length; j++) {
+                        if (classes[i].day === classes[j].day) {
+                            const start1 = classes[i].startTime;
+                            const end1 = classes[i].endTime;
+                            const start2 = classes[j].startTime;
+                            const end2 = classes[j].endTime;
+
+                            if (!(end1 <= start2 || start1 >= end2)) {
+                                hasConflict = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (hasConflict) break;
+                }
+
+                if (hasConflict) {
+                    conflictDiv.classList.remove('d-none');
+                    document.getElementById('submitEnrollment').disabled = true;
+                } else {
+                    conflictDiv.classList.add('d-none');
+                    if (selectedClasses.size > 0) {
+                        document.getElementById('submitEnrollment').disabled = false;
+                    }
+                }
+            }
+
+            // Submit enrollment
+            document.getElementById('submitEnrollment').addEventListener('click', async function() {
+                if (selectedClasses.size === 0) return;
+
+                const classIds = Array.from(selectedClasses.values()).map(info => info.classId);
+
+                if (!confirm(`Confirm registration for ${selectedClasses.size} courses?\nTotal: ${totalFee.toLocaleString()} VND`)) {
+                    return;
+                }
+
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+
+                try {
+                    const response = await fetch('/Student/SubmitEnrollment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ selectedClassIds: classIds })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert(`Success: ${result.message}\n\nEnrolled: ${result.enrolledCourses.join(', ')}\nRemaining Balance: ${result.remainingBalance.toLocaleString()} VND`);
+                        window.location.reload();
+                    } else {
+                        alert(`Error: ${result.message}\n\n${result.errors.join('\n')}`);
+                        this.disabled = false;
+                        this.innerHTML = 'Submit Registration';
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                    this.disabled = false;
+                    this.innerHTML = 'Submit Registration';
+                }
+            });
+        }
+    </script>
+}

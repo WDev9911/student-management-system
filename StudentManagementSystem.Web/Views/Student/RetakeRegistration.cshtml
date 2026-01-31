@@ -1,0 +1,261 @@
+@model StudentManagementSystem.BLL.DTOs.CourseRegistration.RetakeRegistrationDto
+
+@{
+    ViewData["Title"] = "Retake Registration";
+    var feeMap = Model.PendingCourses
+        .GroupBy(p => p.CourseId)
+        .ToDictionary(g => g.Key, g => g.First().RequiredFee);
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>Retake Registration</h3>
+            <p class="text-muted">Register failed courses (50% fee)</p>
+        </div>
+    </div>
+
+    @if (!Model.Courses.Any())
+    {
+        <div class="alert alert-info">No failed courses available for retake.</div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-8">
+                @foreach (var course in Model.Courses)
+                {
+                    var requiredFee = feeMap.TryGetValue(course.CourseId, out var fee) ? fee : course.TuitionFee;
+                    <div class="card mb-3" data-course-fee="@requiredFee">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5 class="card-title">@course.CourseCode - @course.CourseName</h5>
+                                    <p class="text-muted mb-1">Credits: @course.Credits</p>
+                                    <p class="text-success mb-0">Retake Fee: @requiredFee.ToString("N0") VND</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input course-checkbox"
+                                               type="checkbox"
+                                               data-course-id="@course.CourseId"
+                                               id="course-@course.CourseId">
+                                        <label class="form-check-label" for="course-@course.CourseId">Register this retake</label>
+                                    </div>
+                                    <select class="form-select mt-2 class-selector"
+                                            data-course-id="@course.CourseId"
+                                            disabled>
+                                        <option value="">-- Select Class --</option>
+                                        @foreach (var classOption in course.AvailableClasses)
+                                        {
+                                            <option value="@classOption.ClassId"
+                                                    data-day="@classOption.DayOfWeek"
+                                                    data-start="@classOption.StartTime"
+                                                    data-end="@classOption.EndTime"
+                                                    data-startdate="@(classOption.StartDate?.ToString("dd/MM/yyyy"))"
+                                                    data-enddate="@(classOption.EndDate?.ToString("dd/MM/yyyy"))">
+                                                @classOption.ClassName - @classOption.Schedule - @classOption.Room (@classOption.InstructorName)
+                                                @if (classOption.StartDate.HasValue && classOption.EndDate.HasValue)
+                                                {
+                                                    <text> | @classOption.StartDate.Value.ToString("dd/MM/yyyy") - @classOption.EndDate.Value.ToString("dd/MM/yyyy")</text>
+                                                }
+                                            </option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="col-md-4">
+                <div class="card sticky-top" style="top: 20px;">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Retake Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="selectedCourses">
+                            <p class="text-muted text-center">No courses selected</p>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Total Fee:</strong>
+                            <strong id="totalFee">0 VND</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <span>Wallet Balance:</span>
+                            <span id="walletBalance">@ViewBag.WalletBalance VND</span>
+                        </div>
+
+                        <div id="conflictWarning" class="alert alert-danger mt-3 d-none">
+                            Schedule conflict detected!
+                        </div>
+
+                        <button id="submitEnrollment" class="btn btn-success w-100 mt-3">
+                            Submit Retake Registration
+                        </button>
+
+                        <a class="btn btn-outline-secondary w-100 mt-2" href="@Url.Action("PendingCourses", "Student")">
+                            Back to Pending Courses
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        const selectedClasses = new Map();
+        let totalFee = 0;
+
+        document.querySelectorAll('.course-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const courseId = this.dataset.courseId;
+                const selector = document.querySelector(`.class-selector[data-course-id="${courseId}"]`);
+
+                if (this.checked) {
+                    selector.disabled = false;
+                } else {
+                    selector.disabled = true;
+                    selector.value = '';
+                    selectedClasses.delete(courseId);
+                    updateSummary();
+                }
+            });
+        });
+
+        document.querySelectorAll('.class-selector').forEach(selector => {
+            selector.addEventListener('change', function() {
+                const courseId = this.dataset.courseId;
+                const classId = this.value;
+                const selectedOption = this.options[this.selectedIndex];
+
+                if (classId) {
+                    const card = this.closest('.card');
+                    const courseFee = parseFloat(card.dataset.courseFee);
+
+                    const classInfo = {
+                        classId: parseInt(classId),
+                        className: selectedOption.text.split(' - ')[0],
+                        day: selectedOption.dataset.day,
+                        startTime: selectedOption.dataset.start,
+                        endTime: selectedOption.dataset.end,
+                        startDate: selectedOption.dataset.startdate,
+                        endDate: selectedOption.dataset.enddate,
+                        courseName: card.querySelector('.card-title').textContent.trim(),
+                        fee: courseFee
+                    };
+
+                    selectedClasses.set(courseId, classInfo);
+                } else {
+                    selectedClasses.delete(courseId);
+                }
+
+                updateSummary();
+                checkScheduleConflict();
+            });
+        });
+
+        function updateSummary() {
+            const summaryDiv = document.getElementById('selectedCourses');
+            const submitBtn = document.getElementById('submitEnrollment');
+
+            if (selectedClasses.size === 0) {
+                summaryDiv.innerHTML = '<p class="text-muted text-center">No courses selected</p>';
+                submitBtn.disabled = true;
+                totalFee = 0;
+            } else {
+                let html = '<ul class="list-unstyled">';
+                totalFee = 0;
+
+                selectedClasses.forEach((info) => {
+                    html += `<li class="mb-2">
+                        <strong>${info.courseName}</strong><br>
+                        <small class="text-muted">${info.className} - ${info.day}</small><br>
+                        <small class="text-muted">${info.startDate || ''} - ${info.endDate || ''}</small><br>
+                        <small class="text-success">${info.fee.toLocaleString()} VND</small>
+                    </li>`;
+                    totalFee += info.fee;
+                });
+
+                html += '</ul>';
+                summaryDiv.innerHTML = html;
+                submitBtn.disabled = false;
+            }
+
+            document.getElementById('totalFee').textContent = totalFee.toLocaleString() + ' VND';
+        }
+
+        function checkScheduleConflict() {
+            const classes = Array.from(selectedClasses.values());
+            const conflictDiv = document.getElementById('conflictWarning');
+            let hasConflict = false;
+
+            for (let i = 0; i < classes.length; i++) {
+                for (let j = i + 1; j < classes.length; j++) {
+                    if (classes[i].day === classes[j].day) {
+                        const start1 = classes[i].startTime;
+                        const end1 = classes[i].endTime;
+                        const start2 = classes[j].startTime;
+                        const end2 = classes[j].endTime;
+
+                        if (!(end1 <= start2 || start1 >= end2)) {
+                            hasConflict = true;
+                            break;
+                        }
+                    }
+                }
+                if (hasConflict) break;
+            }
+
+            if (hasConflict) {
+                conflictDiv.classList.remove('d-none');
+                document.getElementById('submitEnrollment').disabled = true;
+            } else {
+                conflictDiv.classList.add('d-none');
+                if (selectedClasses.size > 0) {
+                    document.getElementById('submitEnrollment').disabled = false;
+                }
+            }
+        }
+
+        document.getElementById('submitEnrollment').addEventListener('click', async function() {
+            if (selectedClasses.size === 0) return;
+
+            const classIds = Array.from(selectedClasses.values()).map(info => info.classId);
+
+            if (!confirm(`Confirm retake registration for ${selectedClasses.size} courses?\nTotal: ${totalFee.toLocaleString()} VND`)) {
+                return;
+            }
+
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+
+            try {
+                const response = await fetch('/Student/SubmitEnrollment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ selectedClassIds: classIds })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`Success: ${result.message}\n\nEnrolled: ${result.enrolledCourses.join(', ')}\nRemaining Balance: ${result.remainingBalance.toLocaleString()} VND`);
+                    window.location.href = '/Student/PendingCourses';
+                } else {
+                    alert(`Error: ${result.message}\n\n${result.errors.join('\n')}`);
+                    this.disabled = false;
+                    this.innerHTML = 'Submit Retake Registration';
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+                this.disabled = false;
+                this.innerHTML = 'Submit Retake Registration';
+            }
+        });
+    </script>
+}

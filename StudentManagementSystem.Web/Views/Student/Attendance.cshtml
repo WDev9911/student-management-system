@@ -1,0 +1,81 @@
+@model StudentManagementSystem.Web.ViewModels.Attendance.StudentAttendanceViewModel
+
+@{
+    ViewData["Title"] = "My Attendance";
+}
+
+<div class="container-fluid">
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white border-0">
+            <h5 class="mb-0">Attendance</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="Attendance" class="row g-2 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Class</label>
+                    <select class="form-select" name="classId">
+                        <option value="">-- All classes --</option>
+                        @foreach (var cls in Model.Classes)
+                        {
+                            <option value="@cls.ClassId" selected="@(Model.SelectedClassId == cls.ClassId)">
+                                @cls.ClassName - @cls.CourseCode
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Date</label>
+                    <input class="form-control" type="date" name="date" value="@Model.SelectedDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100" type="submit">Load</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.Items.Count == 0)
+    {
+        <div class="alert alert-info">No attendance records found.</div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <span class="text-muted">@Model.SelectedDate.ToString("dd/MM/yyyy")</span>
+            </div>
+            <div class="card-body table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 140px;">Date</th>
+                            <th style="width: 160px;">Class</th>
+                            <th>Course</th>
+                            <th style="width: 140px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>@item.SessionDate.ToString("dd/MM/yyyy")</td>
+                                <td>@item.ClassName</td>
+                                <td>@item.CourseCode - @item.CourseName</td>
+                                <td>
+                                    @if (item.Status == "Present")
+                                    {
+                                        <span class="badge bg-success">Present</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Absent</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

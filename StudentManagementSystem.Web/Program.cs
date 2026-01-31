@@ -24,6 +24,10 @@ builder.Services.AddScoped<ISemesterRepository, SemesterRepository>();
 builder.Services.AddScoped<IClassRepository, ClassRepository>();
 builder.Services.AddScoped<IWalletRepository, WalletRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+builder.Services.AddScoped<IGradeRepository, GradeRepository>();
+builder.Services.AddScoped<IPendingEnrollmentRepository, PendingEnrollmentRepository>();
+builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 
 // BLL
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -35,6 +39,9 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ISemesterService, SemesterService>();
 builder.Services.AddScoped<IClassService, ClassService>();
 builder.Services.AddScoped<IVnPayService, VnPayService>();
+builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+builder.Services.AddScoped<IGradeService, GradeService>();
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -65,3 +72,4 @@ app.MapControllerRoute(
     pattern: "{controller=Auth}/{action=Login}/{id?}");
 
 app.Run();
+

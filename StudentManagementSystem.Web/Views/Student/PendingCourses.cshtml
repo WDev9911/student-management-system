@@ -1,0 +1,83 @@
+@model List<StudentManagementSystem.BLL.DTOs.CourseRegistration.PendingCourseDto>
+@{
+    ViewData["Title"] = "Pending Courses";
+    var retake = Model.Where(p => p.Reason == "Failed course").ToList();
+    var prereq = Model.Where(p => p.Reason != "Failed course").ToList();
+}
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Pending Courses - Retake (50% Fee)</h5>
+    </div>
+    <div class="card-body">
+        @if (!retake.Any())
+        {
+            <div class="alert alert-info">No failed courses.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Course</th>
+                            <th>Required Fee</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in retake)
+                        {
+                            <tr>
+                                <td>@p.CourseCode - @p.CourseName</td>
+                                <td>@p.RequiredFee.ToString("N0") VND</td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-primary"
+                                       href="@Url.Action("RetakeRegistration", "Student")">
+                                        Register Retake
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Pending Courses - Prerequisite Not Met (100% Fee)</h5>
+    </div>
+    <div class="card-body">
+        @if (!prereq.Any())
+        {
+            <div class="alert alert-info">No prerequisite-blocked courses.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Course</th>
+                            <th>Required Fee</th>
+                            <th>Message</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in prereq)
+                        {
+                            <tr>
+                                <td>@p.CourseCode - @p.CourseName</td>
+                                <td>@p.RequiredFee.ToString("N0") VND</td>
+                                <td>@p.Reason</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

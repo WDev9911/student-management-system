@@ -8,5 +8,6 @@ namespace StudentManagementSystem.DAL.Repositories.Interfaces
         Task<Wallet?> GetByIdAsync(int walletId);
         Task<Wallet> CreateAsync(Wallet wallet);
         Task<Wallet> UpdateAsync(Wallet wallet);
+        Task<bool> SaveChangesAsync();
     }
 }

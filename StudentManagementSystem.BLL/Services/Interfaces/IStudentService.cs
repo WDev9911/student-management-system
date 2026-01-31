@@ -6,5 +6,7 @@ namespace StudentManagementSystem.BLL.Services.Interfaces
     {
         Task<StudentDashboardDto?> GetDashboardDataAsync(int studentId);
         Task<WalletInfoDto?> GetWalletInfoAsync(int studentId);
+        Task<StudentScheduleDto> GetStudentScheduleAsync(int studentId);
+        Task<List<StudentGradeDto>> GetPublishedGradesAsync(int studentId);
     }
 }

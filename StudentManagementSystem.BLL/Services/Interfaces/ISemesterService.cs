@@ -7,5 +7,6 @@ namespace StudentManagementSystem.BLL.Services.Interfaces
         Task<List<SemesterDto>> GetAllSemestersAsync();
         Task<SemesterDto?> GetSemesterByIdAsync(int id);
         Task<SemesterDto?> GetCurrentSemesterAsync();
+        Task<(bool Success, string Message)> UpdateSemesterDatesAsync(int semesterId, DateTime startDate, DateTime endDate);
     }
 }

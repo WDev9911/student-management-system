@@ -67,5 +67,6 @@ namespace StudentManagementSystem.DAL.Models
         public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
         public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
         public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+        public virtual ICollection<AttendanceRecord> AttendanceRecords { get; set; } = new List<AttendanceRecord>();
     }
 }

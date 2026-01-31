@@ -42,5 +42,16 @@ namespace StudentManagementSystem.DAL.Repositories.Implementations
                 .OrderBy(c => c.CourseCode)
                 .ToListAsync();
         }
+
+        public async Task<List<Course>> GetCoursesByMajorAsync(int majorId)
+        {
+            return await _context.Courses
+                .Include(c => c.Major)
+                .Include(c => c.PrerequisiteCourse)
+                .Where(c => c.MajorId == majorId)
+                .OrderBy(c => c.SemesterNumber)
+                .ThenBy(c => c.CourseCode)
+                .ToListAsync();
+        }
     }
 }

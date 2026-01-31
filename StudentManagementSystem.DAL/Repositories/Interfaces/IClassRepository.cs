@@ -14,5 +14,8 @@ namespace StudentManagementSystem.DAL.Repositories.Interfaces
         Task<CourseClass> CreateAsync(CourseClass courseClass);
         Task<CourseClass> UpdateAsync(CourseClass courseClass);
         Task<bool> DeleteAsync(int id);
+        Task<CourseClass?> GetClassByIdAsync(int classId);
+        Task<List<CourseClass>> GetClassesByCourseAsync(int courseId);
+        Task<bool> SaveChangesAsync();
     }
 }

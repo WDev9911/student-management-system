@@ -55,8 +55,8 @@
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <div class="stat-label">Current GPA</div>
-                    <div class="stat-value">@Model.CurrentGPA.ToString("F2")</div>
+                    <div class="stat-label">Semester GPA (Semester @Model.CurrentSemester)</div>
+                    <div class="stat-value">@Model.SemesterGPA.ToString("F2")</div>
                 </div>
             </div>
         </div>
@@ -160,7 +160,7 @@
                         </div>
                     </div>
                     <div>
-                        <strong>CGPA: @Model.CurrentGPA.ToString("F2")/4.00</strong>
+                        <strong>Cumulative GPA (CGPA): @Model.CumulativeGPA.ToString("F2")/4.00</strong>
                     </div>
                 </div>
             </div>
